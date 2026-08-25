@@ -9,7 +9,8 @@ import {
   Webhook,
   Calculator,
   ShieldCheck,
-  Sparkles,
+  BookOpen,
+  ExternalLink,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -62,8 +63,21 @@ export const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* Footer Info */}
-      <div className="p-4 border-t border-slate-100">
+      {/* Footer Info & Swagger Link */}
+      <div className="p-4 space-y-2 border-t border-slate-100">
+        <a
+          href="http://localhost:3000/api/docs"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200/80 hover:border-emerald-300 text-slate-700 hover:text-emerald-800 transition-all text-xs font-bold group"
+        >
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-emerald-600" />
+            <span>Documentación Swagger</span>
+          </div>
+          <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+        </a>
+
         <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/60 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
