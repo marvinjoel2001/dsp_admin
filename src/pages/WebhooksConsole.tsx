@@ -14,52 +14,11 @@ export const WebhooksConsole: React.FC = () => {
 
   const fetchDeliveries = () => {
     api.get('/webhooks/deliveries')
-      .then(setDeliveries)
-      .catch(() => {
-        setDeliveries([
-          {
-            id: 'del_1a2b3c4d-9911',
-            orderId: 'ord_8f912a7b',
-            eventType: 'order.in_transit',
-            status: 'SUCCESS',
-            attempts: 1,
-            httpStatusCode: 200,
-            signature: '8f91b2c45e67a890123456789abcdef0123456789abcdef0123456789abcdef0',
-            payload: {
-              event: 'order.in_transit',
-              timestamp: '2026-08-24T21:35:00Z',
-              data: {
-                order_id: 'ord_8f912a7b',
-                merchant_reference: 'TIENDA-9941',
-                status: 'IN_TRANSIT',
-                driver: { name: 'Carlos M.', phone: '+59170000000', vehicle_plate: '1234-XYZ' },
-                tracking_url: 'https://dsp.openplatform.com/track/ord_8f912a7b',
-              },
-            },
-            createdAt: '2026-08-24T21:35:02Z',
-          },
-          {
-            id: 'del_5e6f7a8b-2233',
-            orderId: 'ord_91a02f3c',
-            eventType: 'order.delivered',
-            status: 'FAILED',
-            attempts: 4,
-            httpStatusCode: 504,
-            errorMessage: 'Gateway Timeout tras 10000ms (Endpoint del comercio no responde)',
-            signature: '33b2a1c90f87e6543210fedcba9876543210fedcba9876543210fedcba987654',
-            payload: {
-              event: 'order.delivered',
-              timestamp: '2026-08-24T21:30:00Z',
-              data: {
-                order_id: 'ord_91a02f3c',
-                merchant_reference: 'TIENDA-9942',
-                status: 'DELIVERED',
-                proof_photo_url: 'https://storage.dsp.com/proofs/photo_123.jpg',
-              },
-            },
-            createdAt: '2026-08-24T21:30:05Z',
-          },
-        ]);
+      .then((data) => {
+        if (Array.isArray(data)) setDeliveries(data);
+      })
+      .catch((err) => {
+        console.error('Error fetching webhook deliveries:', err);
       });
   };
 

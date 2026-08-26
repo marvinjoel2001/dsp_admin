@@ -5,46 +5,87 @@ import { api } from '../services/api';
 
 export const Dashboard: React.FC = () => {
   const [stats, setStats] = useState({
-    activeOrders: 18,
-    onlineDrivers: 12,
-    webhookSuccessRate: '99.4%',
-    avgDeliveryTime: '22 min',
+    activeOrders: 0,
+    onlineDrivers: 0,
+    webhookSuccessRate: '100%',
+    totalRevenue: 'Bs. 0.00',
   });
 
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchDashboardData = async () => {
+    setIsLoading(true);
+    try {
+      const [ordersData, driversData, webhooksData] = await Promise.all([
+        api.get('/orders').catch(() => []),
+        api.get('/drivers').catch(() => []),
+        api.get('/webhooks/deliveries').catch(() => []),
+      ]);
+
+      if (Array.isArray(ordersData)) {
+        setRecentOrders(ordersData.slice(0, 8));
+        const active = ordersData.filter((o: any) => o.status !== 'DELIVERED' && o.status !== 'CANCELLED').length;
+        const totalRev = ordersData.reduce((acc: number, curr: any) => acc + Number(curr.price || 0), 0);
+
+        setStats((prev) => ({
+          ...prev,
+          activeOrders: active,
+          totalRevenue: `Bs. ${totalRev.toFixed(2)}`,
+        }));
+      }
+
+      if (Array.isArray(driversData)) {
+        const onlineCount = driversData.filter((d: any) => d.isOnline).length;
+        setStats((prev) => ({
+          ...prev,
+          onlineDrivers: onlineCount,
+        }));
+      }
+
+      if (Array.isArray(webhooksData) && webhooksData.length > 0) {
+        const successCount = webhooksData.filter((w: any) => w.success).length;
+        const rate = ((successCount / webhooksData.length) * 100).toFixed(1);
+        setStats((prev) => ({
+          ...prev,
+          webhookSuccessRate: `${rate}%`,
+        }));
+      }
+    } catch (err) {
+      console.error('Error cargando dashboard:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    api.get('/orders')
-      .then((data) => {
-        if (Array.isArray(data)) setRecentOrders(data.slice(0, 6));
-      })
-      .catch(() => {
-        setRecentOrders([
-          { id: 'ord_8f912a7b', merchantReference: 'TIENDA-9941', status: 'IN_TRANSIT', price: 54.0, pickupAddress: '062 Kuhn Plains', dropoffAddress: '922 Wilfredo Tunnel' },
-          { id: 'ord_91a02f3c', merchantReference: 'TIENDA-9942', status: 'SEARCHING_DRIVER', price: 72.0, pickupAddress: '42 King Mission', dropoffAddress: '67 Hyatt Ext' },
-          { id: 'ord_44b19c8d', merchantReference: 'UBER-1021', status: 'DELIVERED', price: 35.0, pickupAddress: 'Av. San Martín 450', dropoffAddress: 'Calle 5 Equipetrol' },
-          { id: 'ord_77c28d1e', merchantReference: 'PEDIDOS-302', status: 'ASSIGNED', price: 42.0, pickupAddress: 'Mall Las Brisas', dropoffAddress: 'Condominio Sevilla' },
-        ]);
-      });
+    fetchDashboardData();
   }, []);
 
   return (
     <div className="p-8 space-y-8">
-      {/* Tarjetas de Métricas Principales */}
+      {/* Tarjetas de Métricas Principales Reales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          label="Entregas en Curso"
+          label="Entregas Activas"
           value={stats.activeOrders}
-          change="+14% esta hora"
+          change="En tiempo real"
           icon={Package}
           color="emerald"
         />
         <StatCard
           label="Conductores en Línea"
           value={stats.onlineDrivers}
-          change="8 en viaje activo"
+          change="Transmitiendo GPS"
           icon={Bike}
           color="blue"
+        />
+        <StatCard
+          label="Facturación Total"
+          value={stats.totalRevenue}
+          change="En Bolivianos (Bs.)"
+          icon={TrendingUp}
+          color="amber"
         />
         <StatCard
           label="Entregabilidad Webhooks"
@@ -52,13 +93,6 @@ export const Dashboard: React.FC = () => {
           change="0 eventos en DLQ"
           icon={Webhook}
           color="purple"
-        />
-        <StatCard
-          label="Tiempo Promedio"
-          value={stats.avgDeliveryTime}
-          change="-3.2 min vs ayer"
-          icon={TrendingUp}
-          color="amber"
         />
       </div>
 
@@ -69,51 +103,61 @@ export const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
             <div>
               <h3 className="text-base font-bold text-slate-900">Flujo de Órdenes en Tiempo Real</h3>
-              <p className="text-xs text-slate-500 font-medium">Estado sincronizado con las tiendas B2B conectadas</p>
+              <p className="text-xs text-slate-500 font-medium">Datos sincronizados con la base de datos PostgreSQL</p>
             </div>
-            <span className="flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-full shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              Sincronización WebSocket
-            </span>
+            <button
+              onClick={fetchDashboardData}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-colors shadow-xs"
+            >
+              <Activity className="w-3.5 h-3.5 text-emerald-600" />
+              Refrescar
+            </button>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="text-slate-400 border-b border-slate-100 text-[11px] uppercase tracking-wider font-bold">
-                <tr>
-                  <th className="pb-3 font-semibold">ID Orden</th>
-                  <th className="pb-3 font-semibold">Ref. Tienda</th>
-                  <th className="pb-3 font-semibold">Recogida → Entrega</th>
-                  <th className="pb-3 font-semibold">Monto</th>
-                  <th className="pb-3 font-semibold">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 font-mono font-bold text-slate-900">{order.id}</td>
-                    <td className="py-3.5 font-semibold text-slate-600">{order.merchantReference || 'N/A'}</td>
-                    <td className="py-3.5 text-slate-700 max-w-[220px] truncate font-medium">
-                      {order.pickupAddress} <span className="text-emerald-600 font-bold">→</span> {order.dropoffAddress}
-                    </td>
-                    <td className="py-3.5 font-extrabold text-slate-900">Bs. {Number(order.price).toFixed(2)}</td>
-                    <td className="py-3.5">
-                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${
-                        order.status === 'DELIVERED'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : order.status === 'IN_TRANSIT'
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                          : order.status === 'ASSIGNED'
-                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                          : 'bg-amber-50 text-amber-700 border border-amber-200'
-                      }`}>
-                        {order.status === 'IN_TRANSIT' ? 'EN CAMINO' : order.status === 'DELIVERED' ? 'ENTREGADO' : order.status === 'ASSIGNED' ? 'ASIGNADO' : 'BUSCANDO'}
-                      </span>
-                    </td>
+            {recentOrders.length === 0 ? (
+              <div className="py-12 text-center text-slate-400 space-y-2">
+                <Package className="w-10 h-10 mx-auto text-slate-300" />
+                <p className="text-xs font-medium">No hay órdenes registradas aún</p>
+              </div>
+            ) : (
+              <table className="w-full text-left text-xs">
+                <thead className="text-slate-400 border-b border-slate-100 text-[11px] uppercase tracking-wider font-bold">
+                  <tr>
+                    <th className="pb-3 font-semibold">ID Orden</th>
+                    <th className="pb-3 font-semibold">Ref. Tienda</th>
+                    <th className="pb-3 font-semibold">Recogida → Entrega</th>
+                    <th className="pb-3 font-semibold">Monto</th>
+                    <th className="pb-3 font-semibold">Estado</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {recentOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3.5 font-mono font-bold text-slate-900">#{order.id.substring(0, 8)}</td>
+                      <td className="py-3.5 font-semibold text-slate-600">{order.merchantReference || 'N/A'}</td>
+                      <td className="py-3.5 text-slate-700 max-w-[220px] truncate font-medium">
+                        {order.pickupAddress} <span className="text-emerald-600 font-bold">→</span> {order.dropoffAddress}
+                      </td>
+                      <td className="py-3.5 font-extrabold text-slate-900">Bs. {Number(order.price).toFixed(2)}</td>
+                      <td className="py-3.5">
+                        <span className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${
+                          order.status === 'DELIVERED'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : order.status === 'IN_TRANSIT'
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                            : order.status === 'ASSIGNED'
+                            ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
+                        }`}>
+                          {order.status === 'IN_TRANSIT' ? 'EN CAMINO' : order.status === 'DELIVERED' ? 'ENTREGADO' : order.status === 'ASSIGNED' ? 'ASIGNADO' : 'BUSCANDO'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 

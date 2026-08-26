@@ -29,45 +29,10 @@ export const Drivers: React.FC = () => {
   const fetchDrivers = () => {
     api.get('/drivers')
       .then((data: any) => {
-        setDrivers(data || []);
+        if (Array.isArray(data)) setDrivers(data);
       })
-      .catch(() => {
-        setDrivers([
-          {
-            id: 'c8716b1e-6240-4b2a-8c01-7faef83151cf',
-            fullName: 'Alex Repartidor',
-            phone: '+591 70001234',
-            email: 'driver@dsp.com',
-            vehicleType: 'MOTORCYCLE',
-            vehiclePlate: '1234-XYZ',
-            verificationStatus: 'verified',
-            isOnline: true,
-            isActive: true,
-            rating: 4.9,
-            walletBalance: 120.00,
-            idCardUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&auto=format&fit=crop&q=80',
-            licenseUrl: 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=600&auto=format&fit=crop&q=80',
-            soatUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600&auto=format&fit=crop&q=80',
-            vehiclePhotoUrl: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=600&auto=format&fit=crop&q=80',
-          },
-          {
-            id: 'd9827c2f-7351-4c3b-9d12-8abfe94262de',
-            fullName: 'Carlos E-Bike',
-            phone: '+591 71112233',
-            email: 'carlos@dsp.com',
-            vehicleType: 'BICYCLE',
-            vehiclePlate: 'E-BIKE-01',
-            verificationStatus: 'pending',
-            isOnline: false,
-            isActive: true,
-            rating: 4.8,
-            walletBalance: 85.50,
-            idCardUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&auto=format&fit=crop&q=80',
-            licenseUrl: null,
-            soatUrl: null,
-            vehiclePhotoUrl: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=600&auto=format&fit=crop&q=80',
-          },
-        ]);
+      .catch((err) => {
+        console.error('Error fetching drivers:', err);
       });
   };
 

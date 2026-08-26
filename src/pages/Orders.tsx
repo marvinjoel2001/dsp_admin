@@ -8,40 +8,11 @@ export const Orders: React.FC = () => {
 
   const fetchOrders = () => {
     api.get('/orders')
-      .then(setOrders)
-      .catch(() => {
-        setOrders([
-          {
-            id: 'ord_8f912a7b',
-            merchantReference: 'TIENDA-9941',
-            status: 'IN_TRANSIT',
-            pickupAddress: '062 Kuhn Plains Suite 793',
-            pickupLat: -17.7833,
-            pickupLng: -63.1821,
-            dropoffAddress: '922 Wilfredo Tunnel',
-            dropoffLat: -17.7950,
-            dropoffLng: -63.1700,
-            price: 54.0,
-            driverPayout: 43.2,
-            trackingToken: 'track-434567',
-            createdAt: '2026-08-24T21:35:00Z',
-          },
-          {
-            id: 'ord_91a02f3c',
-            merchantReference: 'TIENDA-9942',
-            status: 'SEARCHING_DRIVER',
-            pickupAddress: '42 King Mission Apt. 152',
-            pickupLat: -17.7780,
-            pickupLng: -63.1890,
-            dropoffAddress: '67 Hyatt Extension',
-            dropoffLat: -17.7910,
-            dropoffLng: -63.1750,
-            price: 72.0,
-            driverPayout: 57.6,
-            trackingToken: 'track-434566',
-            createdAt: '2026-08-24T21:30:00Z',
-          },
-        ]);
+      .then((data) => {
+        if (Array.isArray(data)) setOrders(data);
+      })
+      .catch((err) => {
+        console.error('Error fetching orders:', err);
       });
   };
 

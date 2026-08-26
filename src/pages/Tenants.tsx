@@ -13,30 +13,11 @@ export const Tenants: React.FC = () => {
 
   const fetchTenants = () => {
     api.get('/tenants')
-      .then(setTenants)
-      .catch(() => {
-        setTenants([
-          {
-            id: '7b2a9d1e-1234-4567-89ab-cdef01234567',
-            name: 'SuperEats Bolivia',
-            email: 'operaciones@supereats.bo',
-            apiKeyMasked: 'dsp_live_8f91...77a1',
-            webhookUrl: 'https://api.supereats.bo/webhooks/dsp-events',
-            webhookSecret: 'whsec_99418af882b7c4',
-            isActive: true,
-            createdAt: '2026-08-24T21:30:00Z',
-          },
-          {
-            id: '8c3b0e2f-2345-6789-01cd-ef0123456789',
-            name: 'FashionExpress Retail',
-            email: 'dev@fashionexpress.com',
-            apiKeyMasked: 'dsp_live_33b2...99f4',
-            webhookUrl: 'https://webhook.site/demo-dsp',
-            webhookSecret: 'whsec_110294fc2719a0',
-            isActive: true,
-            createdAt: '2026-08-24T21:15:00Z',
-          },
-        ]);
+      .then((data) => {
+        if (Array.isArray(data)) setTenants(data);
+      })
+      .catch((err) => {
+        console.error('Error fetching tenants:', err);
       });
   };
 
