@@ -27,6 +27,95 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 
+// ==========================================
+// VECTORES SVG OFICIALES DE LA APP
+// ==========================================
+
+const bicycleSvgString = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 320" width="38" height="54">
+  <defs>
+    <filter id="bikeShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <g filter="url(#bikeShadow)" transform="translate(0, 5)">
+    <rect x="96" y="45" width="8" height="65" rx="4" fill="#2C3E50"/>
+    <rect x="98" y="48" width="4" height="59" rx="2" fill="#7F8C8D"/>
+    <rect x="96" y="195" width="8" height="65" rx="4" fill="#2C3E50"/>
+    <rect x="98" y="198" width="4" height="59" rx="2" fill="#7F8C8D"/>
+    <path d="M 45 95 C 65 90, 80 92, 100 92 C 120 92, 135 90, 155 95" fill="none" stroke="#7F8C8D" stroke-width="5" stroke-linecap="round"/>
+    <path d="M 45 95 L 45 108" stroke="#34495E" stroke-width="7" stroke-linecap="round"/>
+    <path d="M 155 95 L 155 108" stroke="#34495E" stroke-width="7" stroke-linecap="round"/>
+    <rect x="97" y="90" width="6" height="95" fill="#95A5A6"/>
+    <line x1="65" y1="170" x2="135" y2="170" stroke="#7F8C8D" stroke-width="4" stroke-linecap="round"/>
+    <rect x="60" y="163" width="12" height="14" rx="2" fill="#34495E"/>
+    <rect x="128" y="163" width="12" height="14" rx="2" fill="#34495E"/>
+    <path d="M 100 150 C 92 165, 82 185, 82 195 C 82 205, 92 210, 100 210 C 108 210, 118 205, 118 195 C 118 185, 108 165, 100 150 Z" fill="#2C3E50" stroke="#1A252F" stroke-width="2"/>
+  </g>
+</svg>
+`;
+
+const carSvgString = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 320" width="42" height="60">
+  <defs>
+    <filter id="carShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-opacity="0.4"/>
+    </filter>
+    <linearGradient id="carBodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#CBD5E1"/>
+      <stop offset="20%" stop-color="#F1F5F9"/>
+      <stop offset="50%" stop-color="#FFFFFF"/>
+      <stop offset="80%" stop-color="#F1F5F9"/>
+      <stop offset="100%" stop-color="#94A3B8"/>
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#carShadow)" transform="translate(0, 5)">
+    <rect x="36" y="115" width="14" height="24" rx="6" fill="#94A3B8" stroke="#64748B" stroke-width="1.5"/>
+    <rect x="150" y="115" width="14" height="24" rx="6" fill="#94A3B8" stroke="#64748B" stroke-width="1.5"/>
+    <path d="M 55 60 C 55 45, 80 40, 100 40 C 120 40, 145 45, 145 60 L 148 210 C 148 245, 125 255, 100 255 C 75 255, 52 245, 52 210 Z" fill="url(#carBodyGrad)" stroke="#64748B" stroke-width="2"/>
+    <path d="M 68 55 C 85 50, 115 50, 132 55" fill="none" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/>
+    <path d="M 62 100 C 80 93, 120 93, 138 100 L 132 125 C 115 122, 85 122, 68 125 Z" fill="url(#glassGrad)"/>
+    <path d="M 67 128 C 85 125, 115 125, 133 128 L 135 185 C 115 188, 85 188, 65 185 Z" fill="url(#carBodyGrad)" stroke="#CBD5E0" stroke-width="1"/>
+    <path d="M 66 190 C 85 187, 115 187, 134 190 L 130 208 C 115 212, 85 212, 70 208 Z" fill="url(#glassGrad)"/>
+    <path d="M 56 230 C 56 242, 72 248, 78 248 L 78 238 C 70 238, 60 235, 56 230 Z" fill="#EF4444"/>
+    <path d="M 144 230 C 144 242, 128 248, 122 248 L 122 238 C 130 238, 140 235, 144 230 Z" fill="#EF4444"/>
+  </g>
+</svg>
+`;
+
+const storePickupSvgString = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="36" height="44">
+  <defs>
+    <filter id="pinShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#0F172A" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <path d="M 50 10 C 27.9 10, 10 27.9, 10 50 C 10 78, 50 115, 50 115 C 50 115, 90 78, 90 50 C 90 27.9, 72.1 10, 50 10 Z" fill="#F59E0B" stroke="#FFFFFF" stroke-width="3.5" filter="url(#pinShadow)"/>
+  <circle cx="50" cy="48" r="22" fill="#FFFFFF"/>
+  <path d="M 36 43 L 38 35 H 62 L 64 43 Z" fill="#F59E0B"/>
+  <path d="M 35 43 H 65 V 59 H 35 Z" fill="none" stroke="#F59E0B" stroke-width="3"/>
+  <rect x="45" y="49" width="10" height="10" fill="#F59E0B"/>
+</svg>
+`;
+
+const customerDropoffSvgString = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="36" height="44">
+  <defs>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#0F172A" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <path d="M 50 10 C 27.9 10, 10 27.9, 10 50 C 10 78, 50 115, 50 115 C 50 115, 90 78, 90 50 C 90 27.9, 72.1 10, 50 10 Z" fill="#059669" stroke="#FFFFFF" stroke-width="3.5" filter="url(#dropShadow)"/>
+  <circle cx="50" cy="48" r="22" fill="#FFFFFF"/>
+  <path d="M 50 34 L 35 46 V 62 H 65 V 46 Z" fill="#059669"/>
+  <rect x="46" y="50" width="8" height="12" fill="#FFFFFF"/>
+</svg>
+`;
+
 // Componente para volar la cámara del mapa suavemente a coordenadas específicas
 const MapFlyTo: React.FC<{ center: [number, number] | null; zoom?: number }> = ({ center, zoom = 15 }) => {
   const map = useMap();
@@ -38,31 +127,35 @@ const MapFlyTo: React.FC<{ center: [number, number] | null; zoom?: number }> = (
   return null;
 };
 
-// Generador de Iconos Dinámicos para Vehículos con Icono Real PNG para Motos
+// Generador de Iconos Dinámicos SIN CÍRCULO BLANCO
 const createVehicleIcon = (type: string = 'MOTORCYCLE', heading: number = 0, name: string = 'Repartidor', isDelivering: boolean = false) => {
-  const isMotorcycle = type.toUpperCase() === 'MOTORCYCLE';
-  const iconEmoji = type.toUpperCase() === 'BICYCLE' ? '🚴' : type.toUpperCase() === 'CAR' ? '🚗' : '🏍️';
-  const badgeColor = isDelivering ? '#7C3AED' : '#059669';
+  const vType = (type || 'MOTORCYCLE').toUpperCase();
 
-  const vehicleGraphic = isMotorcycle
-    ? `<img src="/images/icon_driver.png" style="width:36px; height:36px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));" alt="Driver" />`
-    : `<div style="font-size:20px;">${iconEmoji}</div>`;
+  let vehicleGraphic = '';
+  if (vType === 'BICYCLE') {
+    vehicleGraphic = bicycleSvgString;
+  } else if (vType === 'CAR') {
+    vehicleGraphic = carSvgString;
+  } else {
+    // MOTORCYCLE: Usa la imagen oficial icon_driver.png con rotación directa y sombra
+    vehicleGraphic = `<img src="/images/icon_driver.png" style="width:48px; height:48px; object-fit:contain; filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));" alt="Driver" />`;
+  }
 
   return new L.DivIcon({
     className: 'custom-driver-vehicle-marker',
     html: `
       <div style="display:flex; flex-direction:column; align-items:center; pointer-events:auto; position:relative;">
-        <!-- Halo / Radar de Ubicación Activa -->
-        <div style="position:absolute; top:12px; width:46px; height:46px; border-radius:50%; background:rgba(16,185,129,0.22); border:1.5px solid rgba(16,185,129,0.5); z-index:1;"></div>
+        <!-- Radar / Halo Verde Translúcido de Ubicación GPS (Sin fondo blanco) -->
+        <div style="position:absolute; top:12px; width:54px; height:54px; border-radius:50%; background:rgba(16,185,129,0.22); border:1.5px solid rgba(16,185,129,0.55); pointer-events:none; z-index:1;"></div>
 
         <!-- Etiqueta con Nombre del Conductor -->
-        <div style="background:#0F172A; color:#FFFFFF; font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px; margin-bottom:3px; white-space:nowrap; box-shadow:0 3px 8px rgba(0,0,0,0.35); border:1px solid #334155; display:flex; items-center; gap:3px; z-index:3;">
-          <span style="width:6px; height:6px; border-radius:50%; background:${isDelivering ? '#A855F7' : '#10B981'}; display:inline-block; margin-top:2px;"></span>
+        <div style="background:#0F172A; color:#FFFFFF; font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px; margin-bottom:2px; white-space:nowrap; box-shadow:0 3px 8px rgba(0,0,0,0.4); border:1px solid #334155; display:flex; align-items:center; gap:4px; z-index:3;">
+          <span style="width:6px; height:6px; border-radius:50%; background:${isDelivering ? '#A855F7' : '#10B981'}; display:inline-block;"></span>
           ${name}
         </div>
 
-        <!-- Contenedor del Vehículo con Rotación por Rumbo GPS -->
-        <div style="transform: rotate(${heading}deg); width: 42px; height: 42px; background: white; border: 2.5px solid ${badgeColor}; border-radius: 50%; box-shadow: 0 4px 14px rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; z-index:2; transition: transform 0.3s ease-out;">
+        <!-- Gráfico del Vehículo Directo con Rotación (Sin contenedor de círculo blanco) -->
+        <div style="transform: rotate(${heading}deg); width: 48px; height: 48px; display:flex; align-items:center; justify-content:center; z-index:2; transition: transform 0.3s ease-out;">
           ${vehicleGraphic}
         </div>
       </div>
@@ -74,16 +167,16 @@ const createVehicleIcon = (type: string = 'MOTORCYCLE', heading: number = 0, nam
 
 const storePickupIcon = new L.DivIcon({
   className: 'custom-pickup-icon',
-  html: `<div style="background:#F59E0B; width:38px; height:38px; border-radius:50%; border:3px solid white; box-shadow:0 4px 14px rgba(245,158,11,0.5); display:flex; align-items:center; justify-content:center; color:white; font-size:18px;">🏪</div>`,
-  iconSize: [38, 38],
-  iconAnchor: [19, 19],
+  html: storePickupSvgString,
+  iconSize: [36, 44],
+  iconAnchor: [18, 44],
 });
 
 const destinationIcon = new L.DivIcon({
   className: 'custom-destination-icon',
-  html: `<div style="background:#059669; width:38px; height:38px; border-radius:50%; border:3px solid white; box-shadow:0 4px 14px rgba(5,150,105,0.5); display:flex; align-items:center; justify-content:center; color:white; font-size:18px;">🏠</div>`,
-  iconSize: [38, 38],
-  iconAnchor: [19, 19],
+  html: customerDropoffSvgString,
+  iconSize: [36, 44],
+  iconAnchor: [18, 44],
 });
 
 export const LiveDispatch: React.FC = () => {
@@ -93,6 +186,7 @@ export const LiveDispatch: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [flyCoord, setFlyCoord] = useState<[number, number] | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [filterTab, setFilterTab] = useState<'all' | 'online' | 'delivering' | 'offline'>('all');
   const [sidePanelOpen, setSidePanelOpen] = useState(true);
   const [sideTab, setSideTab] = useState<'orders' | 'drivers'>('orders');
@@ -108,7 +202,6 @@ export const LiveDispatch: React.FC = () => {
       ]);
 
       if (Array.isArray(driversData)) {
-        // Enriquecer datos con coordenadas por defecto si el conductor está activo
         const mapped = driversData.map((d: any, index: number) => ({
           driverId: d.id,
           id: d.id,
@@ -116,10 +209,10 @@ export const LiveDispatch: React.FC = () => {
           fullName: d.fullName,
           phone: d.phone,
           vehicleType: d.vehicleType || 'MOTORCYCLE',
-          plateNumber: d.plateNumber || 'N/A',
+          plateNumber: d.vehiclePlate || d.plateNumber || 'N/A',
           rating: d.rating || 5.0,
           isOnline: d.isOnline ?? true,
-          verificationStatus: d.verificationStatus || 'VERIFIED',
+          verificationStatus: d.verificationStatus || 'verified',
           lat: d.currentLat || -17.7833 + (index * 0.005 - 0.002),
           lng: d.currentLng || -63.1821 + (index * 0.004 - 0.002),
           heading: d.heading || 45,
@@ -142,7 +235,7 @@ export const LiveDispatch: React.FC = () => {
   useEffect(() => {
     loadRealData();
 
-    // 2. Conectar WebSocket en Tiempo Real para Telemetría de Conductores
+    // 2. Conectar WebSocket en Tiempo Real
     const wsUrl =
       (process.env.WS_URL as string) ||
       (import.meta.env.VITE_WS_URL as string) ||
@@ -175,6 +268,7 @@ export const LiveDispatch: React.FC = () => {
             fullName: data.driverName || 'Conductor en Ruta',
             phone: data.phone || '+591 70000000',
             vehicleType: data.vehicleType || 'MOTORCYCLE',
+            plateNumber: 'N/A',
             rating: 5.0,
             isOnline: true,
             lat: data.lat,
@@ -192,13 +286,16 @@ export const LiveDispatch: React.FC = () => {
     };
   }, []);
 
-  // Filtrar conductores para la búsqueda
+  // Filtrar conductores para la lista
   const filteredDrivers = useMemo(() => {
     return drivers.filter((d) => {
+      const q = searchQuery.toLowerCase().trim();
       const matchSearch =
-        d.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.phone?.includes(searchQuery) ||
-        d.vehicleType?.toLowerCase().includes(searchQuery.toLowerCase());
+        !q ||
+        d.name?.toLowerCase().includes(q) ||
+        d.phone?.includes(q) ||
+        d.vehicleType?.toLowerCase().includes(q) ||
+        d.plateNumber?.toLowerCase().includes(q);
 
       if (!matchSearch) return false;
 
@@ -209,10 +306,34 @@ export const LiveDispatch: React.FC = () => {
     });
   }, [drivers, searchQuery, filterTab]);
 
-  // Órdenes activas (no entregadas ni canceladas)
+  // Órdenes activas
   const activeOrders = useMemo(() => {
     return orders.filter((o) => o.status !== 'CANCELLED');
   }, [orders]);
+
+  // Resultados de búsqueda combinada (Conductores y Órdenes)
+  const searchResults = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return { drivers: [], orders: [] };
+
+    const matchedDrivers = drivers.filter(
+      (d) =>
+        d.name?.toLowerCase().includes(q) ||
+        d.phone?.includes(q) ||
+        d.vehicleType?.toLowerCase().includes(q) ||
+        d.plateNumber?.toLowerCase().includes(q)
+    );
+
+    const matchedOrders = orders.filter(
+      (o) =>
+        o.id?.toLowerCase().includes(q) ||
+        o.merchantReference?.toLowerCase().includes(q) ||
+        o.pickupAddress?.toLowerCase().includes(q) ||
+        o.dropoffAddress?.toLowerCase().includes(q)
+    );
+
+    return { drivers: matchedDrivers, orders: matchedOrders };
+  }, [drivers, orders, searchQuery]);
 
   const handleSelectDriver = (d: any) => {
     setSelectedDriver(d);
@@ -275,8 +396,12 @@ export const LiveDispatch: React.FC = () => {
                   dashArray={isSelected ? undefined : '8, 8'}
                 />
 
-                {/* Marcador Pickup */}
-                <Marker position={[pLat, pLng]} icon={storePickupIcon}>
+                {/* Marcador Tienda Pickup Oficial */}
+                <Marker
+                  position={[pLat, pLng]}
+                  icon={storePickupIcon}
+                  eventHandlers={{ click: () => handleSelectOrder(ord) }}
+                >
                   <Popup>
                     <div className="p-2 space-y-1">
                       <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
@@ -288,8 +413,12 @@ export const LiveDispatch: React.FC = () => {
                   </Popup>
                 </Marker>
 
-                {/* Marcador Dropoff */}
-                <Marker position={[dLat, dLng]} icon={destinationIcon}>
+                {/* Marcador Cliente Dropoff Oficial */}
+                <Marker
+                  position={[dLat, dLng]}
+                  icon={destinationIcon}
+                  eventHandlers={{ click: () => handleSelectOrder(ord) }}
+                >
                   <Popup>
                     <div className="p-2 space-y-1">
                       <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
@@ -304,7 +433,7 @@ export const LiveDispatch: React.FC = () => {
             );
           })}
 
-          {/* Marcadores de Conductores en Vivo con Icono Real */}
+          {/* Marcadores de Conductores en Vivo (Sin fondo blanco, con SVG o icon_driver) */}
           {drivers.map((d) => {
             const isDelivering = !!d.orderId;
             return (
@@ -338,19 +467,26 @@ export const LiveDispatch: React.FC = () => {
 
         {/* 2. HUD SUPERIOR FLOTANTE: BÚSQUEDA Y FILTROS */}
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 max-w-md w-full pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-xl p-3 rounded-2xl shadow-xl border border-slate-200/80 space-y-2.5">
+          <div className="bg-white/95 backdrop-blur-xl p-3 rounded-2xl shadow-xl border border-slate-200/80 space-y-2.5 relative">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
-                  placeholder="Buscar conductor por nombre, celular o placa..."
+                  placeholder="Buscar conductor, teléfono, placa o dirección..."
                   value={searchQuery}
+                  onFocus={() => setIsSearchFocused(true)}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition-all"
+                  className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
                 />
                 {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600">
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setIsSearchFocused(false);
+                    }}
+                    className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                  >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -364,6 +500,65 @@ export const LiveDispatch: React.FC = () => {
                 <Activity className="w-4 h-4" />
               </button>
             </div>
+
+            {/* Menú Desplegable con Resultados de Búsqueda */}
+            {searchQuery.trim() && isSearchFocused && (
+              <div className="absolute left-0 right-0 top-full mt-2 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-slate-200 p-2 max-h-72 overflow-y-auto space-y-2 z-20">
+                {searchResults.drivers.length === 0 && searchResults.orders.length === 0 ? (
+                  <p className="text-center py-4 text-xs text-slate-400">
+                    No se encontraron conductores ni órdenes con "{searchQuery}"
+                  </p>
+                ) : (
+                  <>
+                    {searchResults.drivers.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-extrabold uppercase text-slate-400 px-2">Conductores</p>
+                        {searchResults.drivers.map((d) => (
+                          <div
+                            key={d.id}
+                            onClick={() => {
+                              handleSelectDriver(d);
+                              setIsSearchFocused(false);
+                            }}
+                            className="p-2 hover:bg-indigo-50 rounded-xl cursor-pointer flex items-center justify-between transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Bike className="w-3.5 h-3.5 text-indigo-600" />
+                              <span className="text-xs font-bold text-slate-800">{d.name}</span>
+                              <span className="text-[10px] text-slate-400">({d.phone})</span>
+                            </div>
+                            <span className="text-[10px] font-bold text-emerald-600">{d.vehicleType}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {searchResults.orders.length > 0 && (
+                      <div className="space-y-1 pt-1 border-t border-slate-100">
+                        <p className="text-[10px] font-extrabold uppercase text-slate-400 px-2">Órdenes</p>
+                        {searchResults.orders.map((o) => (
+                          <div
+                            key={o.id}
+                            onClick={() => {
+                              handleSelectOrder(o);
+                              setIsSearchFocused(false);
+                            }}
+                            className="p-2 hover:bg-emerald-50 rounded-xl cursor-pointer flex items-center justify-between transition-colors"
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <Package className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span className="text-xs font-mono font-bold text-slate-800">#{o.id.substring(0, 8)}</span>
+                              <span className="text-[11px] text-slate-500 truncate">{o.dropoffAddress}</span>
+                            </div>
+                            <span className="text-[10px] font-extrabold text-slate-900 shrink-0">Bs. {Number(o.price).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Pestañas de Filtro de Conductor */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] font-bold">

@@ -25,6 +25,7 @@ export const Drivers: React.FC = () => {
   const [selectedPreviewImage, setSelectedPreviewImage] = useState<{ title: string; url: string } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'online'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchDrivers = () => {
     api.get('/drivers')
@@ -69,9 +70,21 @@ export const Drivers: React.FC = () => {
   };
 
   const filteredDrivers = drivers.filter((d) => {
-    if (filter === 'pending') return d.verificationStatus === 'pending';
-    if (filter === 'verified') return d.verificationStatus === 'verified';
-    if (filter === 'online') return d.isOnline;
+    const q = searchQuery.toLowerCase().trim();
+    const matchSearch =
+      !q ||
+      d.fullName?.toLowerCase().includes(q) ||
+      d.phone?.includes(q) ||
+      d.email?.toLowerCase().includes(q) ||
+      d.vehiclePlate?.toLowerCase().includes(q) ||
+      d.vehicleType?.toLowerCase().includes(q);
+
+    if (!matchSearch) return false;
+
+    const vStatus = (d.verificationStatus || '').toLowerCase();
+    if (filter === 'pending') return vStatus === 'pending';
+    if (filter === 'verified') return vStatus === 'verified';
+    if (filter === 'online') return !!d.isOnline;
     return true;
   });
 
@@ -88,39 +101,60 @@ export const Drivers: React.FC = () => {
             Revisión de expedientes, licencias, SOAT, turnos en vivo y aprobación de repartidores
           </p>
         </div>
+      </div>
+
+      {/* Barra de Búsqueda y Filtros de Conductores */}
+      <div className="flex flex-col md:flex-row items-center gap-4 bg-white/80 backdrop-blur-xl p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="relative flex-1 w-full">
+          <input
+            type="text"
+            placeholder="Buscar conductor por nombre, celular, correo, placa o tipo de vehículo..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-4 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-inner"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
 
         {/* Filtros rápidos */}
-        <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 text-xs font-bold">
+        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-xs font-bold">
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
-              filter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+            className={`px-3 py-2 rounded-xl transition-all ${
+              filter === 'all' ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
             Todos ({drivers.length})
           </button>
           <button
             onClick={() => setFilter('pending')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
-              filter === 'pending' ? 'bg-amber-500 text-white shadow-xs' : 'text-amber-700 hover:bg-amber-50'
+            className={`px-3 py-2 rounded-xl transition-all flex items-center gap-1 ${
+              filter === 'pending' ? 'bg-amber-500 text-white shadow-xs' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            Pendientes ({drivers.filter((d) => d.verificationStatus === 'pending').length})
+            Pendientes ({drivers.filter((d) => (d.verificationStatus || '').toLowerCase() === 'pending').length})
           </button>
           <button
             onClick={() => setFilter('verified')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
-              filter === 'verified' ? 'bg-emerald-600 text-white shadow-xs' : 'text-emerald-700 hover:bg-emerald-50'
+            className={`px-3 py-2 rounded-xl transition-all flex items-center gap-1 ${
+              filter === 'verified' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            Verificados ({drivers.filter((d) => d.verificationStatus === 'verified').length})
+            Verificados ({drivers.filter((d) => (d.verificationStatus || '').toLowerCase() === 'verified').length})
           </button>
           <button
             onClick={() => setFilter('online')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
-              filter === 'online' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+            className={`px-3 py-2 rounded-xl transition-all ${
+              filter === 'online' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
             En Línea ({drivers.filter((d) => d.isOnline).length})
