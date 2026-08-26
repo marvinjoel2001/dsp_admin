@@ -43,8 +43,8 @@ export const Login: React.FC = () => {
         
         {/* Logo & Header */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 mb-4 group transition-transform hover:scale-105">
-            <ShieldCheck className="w-8 h-8 text-white stroke-[2.2]" />
+          <div className="w-16 h-16 rounded-3xl bg-white p-2 flex items-center justify-center shadow-lg shadow-slate-200/80 border border-slate-100 mb-4 group transition-transform hover:scale-105">
+            <img src="/images/logo.png" alt="Chiringuito DSP" className="w-full h-full object-contain" />
           </div>
           
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 mb-1">

@@ -39,8 +39,8 @@ export const Sidebar: React.FC = () => {
       <div>
         {/* Brand Header */}
         <div className="p-6 flex items-center gap-3 border-b border-slate-100">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <ShieldCheck className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-sm border border-slate-200/80 shrink-0">
+            <img src="/images/logo.png" alt="Chiringuito DSP" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="font-extrabold text-base tracking-tight text-slate-900">
