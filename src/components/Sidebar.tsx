@@ -11,9 +11,13 @@ import {
   ShieldCheck,
   BookOpen,
   ExternalLink,
+  LogOut,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const Sidebar: React.FC = () => {
+  const { logout, user } = useAuth();
+
   const navItems = [
     { label: 'Panel General', to: '/', icon: LayoutDashboard },
     { label: 'Tiendas y Claves API', to: '/tenants', icon: Store },
@@ -29,15 +33,15 @@ export const Sidebar: React.FC = () => {
       <div>
         {/* Brand Header */}
         <div className="p-6 flex items-center gap-3 border-b border-slate-100">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <ShieldCheck className="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 className="font-extrabold text-base tracking-tight text-slate-900">
-              OpenDSP Core
+              Chiringuito DSP
             </h1>
-            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/50">
-              Panel de Control
+            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200/50">
+              Centro de Operaciones
             </span>
           </div>
         </div>
@@ -51,7 +55,7 @@ export const Sidebar: React.FC = () => {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all duration-200 ${
                   isActive
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-sm shadow-emerald-500/5'
+                    ? 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-sm shadow-indigo-500/5'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
                 }`
               }
@@ -63,25 +67,37 @@ export const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* Footer Info & Swagger Link */}
+      {/* Footer Info, Swagger Link & Logout */}
       <div className="p-4 space-y-2 border-t border-slate-100">
         <a
           href="http://localhost:3000/api/docs"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200/80 hover:border-emerald-300 text-slate-700 hover:text-emerald-800 transition-all text-xs font-bold group"
+          className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/80 hover:border-indigo-300 text-slate-700 hover:text-indigo-800 transition-all text-xs font-bold group"
         >
           <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-emerald-600" />
+            <BookOpen className="w-4 h-4 text-indigo-600" />
             <span>Documentación Swagger</span>
           </div>
-          <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+          <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
         </a>
 
-        <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/60 flex items-center justify-between shadow-xs">
+        <button
+          type="button"
+          onClick={logout}
+          className="w-full flex items-center justify-between p-2.5 rounded-xl bg-red-50/60 hover:bg-red-100/80 border border-red-200/60 text-red-700 transition-all text-xs font-bold cursor-pointer"
+        >
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-semibold text-slate-700">Cluster Activo</span>
+            <LogOut className="w-4 h-4 text-red-600" />
+            <span>Cerrar Sesión</span>
+          </div>
+          <span className="text-[10px] text-red-500 font-normal">Salir</span>
+        </button>
+
+        <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-200/60 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[11px] font-semibold text-slate-700">Cluster Activo</span>
           </div>
           <span className="text-[10px] font-mono text-slate-400 font-bold">v1.0.0</span>
         </div>

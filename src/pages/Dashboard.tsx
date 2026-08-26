@@ -96,7 +96,7 @@ export const Dashboard: React.FC = () => {
                     <td className="py-3.5 text-slate-700 max-w-[220px] truncate font-medium">
                       {order.pickupAddress} <span className="text-emerald-600 font-bold">→</span> {order.dropoffAddress}
                     </td>
-                    <td className="py-3.5 font-extrabold text-slate-900">${Number(order.price).toFixed(2)}</td>
+                    <td className="py-3.5 font-extrabold text-slate-900">Bs. {Number(order.price).toFixed(2)}</td>
                     <td className="py-3.5">
                       <span className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${
                         order.status === 'DELIVERED'

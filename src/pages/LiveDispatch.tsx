@@ -4,18 +4,23 @@ import { io } from 'socket.io-client';
 import L from 'leaflet';
 import { Bike, Navigation, Layers } from 'lucide-react';
 
-const createVehicleIcon = (type: string = 'MOTORCYCLE', heading: number = 0) => {
-  let iconPath = '/icons/motorcycle.svg';
-  if (type === 'BICYCLE') iconPath = '/icons/bicycle.svg';
-  if (type === 'CAR') iconPath = '/icons/car.svg';
+const createVehicleIcon = (type: string = 'MOTORCYCLE', heading: number = 0, name: string = 'Repartidor') => {
+  const iconEmoji = type === 'BICYCLE' ? '🚴' : type === 'CAR' ? '🚗' : '🏍️';
 
   return new L.DivIcon({
     className: 'vehicle-nav-icon',
-    html: `<div style="transform: rotate(${heading}deg); width: 32px; height: 50px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.18));">
-      <img src="${iconPath}" style="width: 100%; height: 100%; object-fit: contain;" />
-    </div>`,
-    iconSize: [32, 50],
-    iconAnchor: [16, 25],
+    html: `
+      <div style="display:flex; flex-direction:column; align-items:center; pointer-events:auto;">
+        <div style="background:#0F172A; color:#FFFFFF; font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px; margin-bottom:2px; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.3); border:1px solid #334155;">
+          ${name}
+        </div>
+        <div style="transform: rotate(${heading}deg); width: 38px; height: 38px; background: #7C3AED; border: 3px solid white; border-radius: 50%; box-shadow: 0 4px 14px rgba(124,58,237,0.6); display:flex; align-items:center; justify-content:center; font-size:18px;">
+          ${iconEmoji}
+        </div>
+      </div>
+    `,
+    iconSize: [80, 60],
+    iconAnchor: [40, 30],
   });
 };
 
@@ -139,7 +144,7 @@ export const LiveDispatch: React.FC = () => {
             <Marker
               key={d.driverId}
               position={[d.lat, d.lng]}
-              icon={createVehicleIcon(d.vehicleType || 'MOTORCYCLE', d.heading || 0)}
+              icon={createVehicleIcon(d.vehicleType || 'MOTORCYCLE', d.heading || 0, d.name)}
             >
               <Popup>
                 <div className="p-2 space-y-1">

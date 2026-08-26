@@ -97,7 +97,7 @@ export const Orders: React.FC = () => {
                 <td className="py-4 px-6 text-slate-700 max-w-[180px] truncate font-medium">{o.pickupAddress}</td>
                 <td className="py-4 px-6 text-slate-700 max-w-[180px] truncate font-medium">{o.dropoffAddress}</td>
                 <td className="py-4 px-6 font-bold text-slate-900">
-                  ${Number(o.price).toFixed(2)} <span className="text-slate-400 font-normal">(${Number(o.driverPayout).toFixed(2)})</span>
+                  Bs. {Number(o.price).toFixed(2)} <span className="text-slate-400 font-normal">(Bs. {Number(o.driverPayout).toFixed(2)})</span>
                 </td>
                 <td className="py-4 px-6">
                   <span className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${

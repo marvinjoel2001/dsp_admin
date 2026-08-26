@@ -140,7 +140,7 @@ export const QuoteSimulator: React.FC = () => {
                 </div>
                 <div className="flex justify-between py-2 border-b border-slate-100">
                   <span className="text-slate-600 font-medium">Tarifa Base + Tarifa KM</span>
-                  <span className="font-bold text-slate-900">${result.basePrice}</span>
+                  <span className="font-bold text-slate-900">Bs. {result.basePrice}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-slate-100">
                   <span className="text-slate-600 font-medium">Factor de Demanda</span>
@@ -152,11 +152,11 @@ export const QuoteSimulator: React.FC = () => {
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between shadow-xs">
               <div>
                 <p className="text-[10px] uppercase font-bold text-emerald-800">Precio Total B2B</p>
-                <p className="text-2xl font-black text-slate-900">${result.totalPrice} USD</p>
+                <p className="text-2xl font-black text-slate-900">Bs. {result.totalPrice} BOB</p>
               </div>
               <div className="text-right">
                 <p className="text-[10px] uppercase font-bold text-slate-500">Pago Conductor (80%)</p>
-                <p className="text-xl font-extrabold text-emerald-700">${result.driverPayout} USD</p>
+                <p className="text-xl font-extrabold text-emerald-700">Bs. {result.driverPayout} BOB</p>
               </div>
             </div>
           </div>
