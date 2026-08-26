@@ -45,7 +45,11 @@ export const LiveDispatch: React.FC = () => {
   ]);
 
   useEffect(() => {
-    const socket = io('http://localhost:3000/tracking', { transports: ['websocket'] });
+    const wsUrl =
+      (process.env.WS_URL as string) ||
+      (import.meta.env.VITE_WS_URL as string) ||
+      'https://dsp-backend-q3mn.onrender.com/tracking';
+    const socket = io(wsUrl, { transports: ['websocket', 'polling'] });
 
     socket.on('fleet:driver_location', (data: any) => {
       setDrivers((prev) => {

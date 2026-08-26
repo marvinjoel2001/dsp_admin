@@ -1,4 +1,7 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000/v1';
+const API_BASE_URL =
+  (process.env.API_BASE_URL as string) ||
+  (import.meta.env.VITE_API_BASE_URL as string) ||
+  'https://dsp-backend-q3mn.onrender.com/v1';
 
 async function handleResponse(res: Response) {
   if (!res.ok) {
