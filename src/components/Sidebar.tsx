@@ -28,6 +28,12 @@ export const Sidebar: React.FC = () => {
     { label: 'Simulador de Tarifas', to: '/quotes', icon: Calculator },
   ];
 
+  const apiBase =
+    (process.env.API_BASE_URL as string) ||
+    (import.meta.env.VITE_API_BASE_URL as string) ||
+    'https://dsp-backend-q3mn.onrender.com/v1';
+  const docsUrl = apiBase.replace(/\/v1\/?$/, '') + '/api/docs';
+
   return (
     <aside className="w-64 bg-white/80 backdrop-blur-xl border-r border-slate-200/80 flex flex-col justify-between h-screen sticky top-0 shadow-sm z-30">
       <div>
@@ -47,16 +53,16 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav className="p-4 space-y-1">
+        <nav className="p-4 space-y-1.5">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all duration-200 ${
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   isActive
-                    ? 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-sm shadow-indigo-500/5'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                    ? 'bg-slate-900 text-white shadow-sm shadow-slate-900/20 translate-x-1'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
                 }`
               }
             >
@@ -70,7 +76,7 @@ export const Sidebar: React.FC = () => {
       {/* Footer Info, Swagger Link & Logout */}
       <div className="p-4 space-y-2 border-t border-slate-100">
         <a
-          href="http://localhost:3000/api/docs"
+          href={docsUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/80 hover:border-indigo-300 text-slate-700 hover:text-indigo-800 transition-all text-xs font-bold group"
