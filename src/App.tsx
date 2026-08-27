@@ -10,6 +10,7 @@ import { Drivers } from './pages/Drivers';
 import { LiveDispatch } from './pages/LiveDispatch';
 import { WebhooksConsole } from './pages/WebhooksConsole';
 import { QuoteSimulator } from './pages/QuoteSimulator';
+import { TestingLab } from './pages/TestingLab';
 import { Login } from './pages/Login';
 
 const MainLayout: React.FC = () => {
@@ -36,6 +37,7 @@ const MainLayout: React.FC = () => {
             <Route path="/drivers" element={<Drivers />} />
             <Route path="/webhooks" element={<WebhooksConsole />} />
             <Route path="/quotes" element={<QuoteSimulator />} />
+            <Route path="/testing-lab" element={<TestingLab />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

@@ -8,6 +8,7 @@ import {
   Bike,
   Webhook,
   Calculator,
+  FlaskConical,
   ShieldCheck,
   BookOpen,
   ExternalLink,
@@ -26,6 +27,7 @@ export const Sidebar: React.FC = () => {
     { label: 'Conductores', to: '/drivers', icon: Bike },
     { label: 'Webhooks y DLQ', to: '/webhooks', icon: Webhook },
     { label: 'Simulador de Tarifas', to: '/quotes', icon: Calculator },
+    { label: 'Laboratorio E2E & Webhooks', to: '/testing-lab', icon: FlaskConical },
   ];
 
   const apiBase =
