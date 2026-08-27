@@ -11,6 +11,8 @@ import { LiveDispatch } from './pages/LiveDispatch';
 import { WebhooksConsole } from './pages/WebhooksConsole';
 import { QuoteSimulator } from './pages/QuoteSimulator';
 import { TestingLab } from './pages/TestingLab';
+import { MerchantSettlements } from './pages/MerchantSettlements';
+import { DriverPayouts } from './pages/DriverPayouts';
 import { Login } from './pages/Login';
 
 const MainLayout: React.FC = () => {
@@ -32,6 +34,8 @@ const MainLayout: React.FC = () => {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/tenants" element={<Tenants />} />
+            <Route path="/merchant-settlements" element={<MerchantSettlements />} />
+            <Route path="/driver-payouts" element={<DriverPayouts />} />
             <Route path="/live-map" element={<LiveDispatch />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/drivers" element={<Drivers />} />

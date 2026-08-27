@@ -9,6 +9,8 @@ import {
   Webhook,
   Calculator,
   FlaskConical,
+  Receipt,
+  Wallet,
   ShieldCheck,
   BookOpen,
   ExternalLink,
@@ -22,6 +24,8 @@ export const Sidebar: React.FC = () => {
   const navItems = [
     { label: 'Panel General', to: '/', icon: LayoutDashboard },
     { label: 'Tiendas y Claves API', to: '/tenants', icon: Store },
+    { label: 'Cobranza a Comercios', to: '/merchant-settlements', icon: Receipt },
+    { label: 'Pagos a Repartidores', to: '/driver-payouts', icon: Wallet },
     { label: 'Mapa de Flota en Vivo', to: '/live-map', icon: MapPin },
     { label: 'Órdenes y Auditoría', to: '/orders', icon: Package },
     { label: 'Conductores', to: '/drivers', icon: Bike },
