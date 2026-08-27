@@ -16,6 +16,9 @@ import {
   Camera,
   Car,
   AlertTriangle,
+  Coins,
+  Wallet,
+  RefreshCw,
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -26,6 +29,13 @@ export const Drivers: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'online'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Modal Ajuste de Saldo / Billetera
+  const [adjustDriver, setAdjustDriver] = useState<any | null>(null);
+  const [adjustAmount, setAdjustAmount] = useState<number>(50);
+  const [adjustType, setAdjustType] = useState<'BONUS' | 'PENALTY'>('BONUS');
+  const [adjustDescription, setAdjustDescription] = useState('');
+  const [isSubmittingAdjust, setIsSubmittingAdjust] = useState(false);
 
   const fetchDrivers = () => {
     api.get('/drivers')
@@ -61,11 +71,32 @@ export const Drivers: React.FC = () => {
       if (selectedDriverForDocs && selectedDriverForDocs.id === driverId) {
         setSelectedDriverForDocs({ ...selectedDriverForDocs, verificationStatus: status });
       }
-    } catch (err) {
-      console.error('Error al actualizar estado de verificación:', err);
+    } catch (err: any) {
+      alert(`Error al actualizar estado: ${err.message}`);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleAdjustBalance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adjustDriver) return;
+    setIsSubmittingAdjust(true);
+    try {
+      const realAmount = adjustType === 'PENALTY' ? -Math.abs(adjustAmount) : Math.abs(adjustAmount);
+      await api.post(`/drivers/${adjustDriver.id}/adjust-balance`, {
+        amount: realAmount,
+        type: adjustType,
+        description: adjustDescription || 'Ajuste operativo de soporte/admin',
+      });
+      alert(`✅ Saldo de ${adjustDriver.fullName} ajustado con éxito.`);
+      setAdjustDriver(null);
+      setAdjustDescription('');
       fetchDrivers();
+    } catch (err: any) {
+      alert(`Error al ajustar saldo: ${err.message}`);
+    } finally {
+      setIsSubmittingAdjust(false);
     }
   };
 
@@ -235,7 +266,19 @@ export const Drivers: React.FC = () => {
                   <p className="font-bold text-slate-800 mt-0.5">{d.vehicleType} ({d.vehiclePlate || 'N/A'})</p>
                 </div>
                 <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold">Billetera</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-slate-500 uppercase font-bold">Billetera</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdjustDriver(d);
+                        setAdjustAmount(50);
+                      }}
+                      className="text-[10px] font-bold text-indigo-600 hover:underline cursor-pointer"
+                    >
+                      Ajustar / Bono
+                    </button>
+                  </div>
                   <p className="font-extrabold text-emerald-700 mt-0.5">Bs. {Number(d.walletBalance || 0).toFixed(2)}</p>
                 </div>
               </div>
@@ -418,6 +461,96 @@ export const Drivers: React.FC = () => {
                 className="max-h-[70vh] w-auto object-contain"
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ajuste de Billetera / Bono */}
+      {adjustDriver && (
+        <div className="fixed inset-0 z-60 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <Coins className="w-5 h-5 text-indigo-600" />
+                Ajustar Saldo: {adjustDriver.fullName}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setAdjustDriver(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAdjustBalance} className="space-y-4 text-xs">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                Saldo actual: <strong className="text-emerald-700">Bs. {Number(adjustDriver.walletBalance || 0).toFixed(2)}</strong>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Tipo de Operación *
+                </label>
+                <select
+                  value={adjustType}
+                  onChange={(e) => setAdjustType(e.target.value as any)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900"
+                >
+                  <option value="BONUS">➕ Bonificación / Acreditación Positiva (+)</option>
+                  <option value="PENALTY">➖ Penalización / Deducción Negativa (-)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Monto en Bolivianos (Bs.) *
+                </label>
+                <input
+                  type="number"
+                  step="0.5"
+                  required
+                  value={adjustAmount}
+                  onChange={(e) => setAdjustAmount(Number(e.target.value))}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-bold text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Motivo o Justificación del Ajuste *
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  placeholder="Ej. Compensación por demora en comercio o lluvia..."
+                  value={adjustDescription}
+                  onChange={(e) => setAdjustDescription(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium"
+                />
+              </div>
+
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setAdjustDriver(null)}
+                  className="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingAdjust}
+                  className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                >
+                  {isSubmittingAdjust ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <span>Aplicar Ajuste</span>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
