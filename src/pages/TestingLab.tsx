@@ -313,9 +313,8 @@ export const TestingLab: React.FC = () => {
 
     const stages = [
       { status: 'ASSIGNED', event: 'order.assigned', delay: 1800 },
-      { status: 'ARRIVED_PICKUP', event: 'driver.arrived_pickup', delay: 2400 },
-      { status: 'PICKED_UP', event: 'order.in_transit', delay: 2400 },
-      { status: 'ARRIVED_DROPOFF', event: 'driver.arrived_dropoff', delay: 2400 },
+      { status: 'ARRIVED_AT_PICKUP', event: 'driver.arrived_pickup', delay: 2400 },
+      { status: 'IN_TRANSIT', event: 'order.in_transit', delay: 2400 },
       { status: 'DELIVERED', event: 'order.delivered', delay: 2000 },
     ];
 
@@ -588,7 +587,7 @@ export const TestingLab: React.FC = () => {
                     <button
                       type="button"
                       disabled={isAdvancingStage}
-                      onClick={() => handleAdvanceStage('ARRIVED_PICKUP', 'driver.arrived_pickup')}
+                      onClick={() => handleAdvanceStage('ARRIVED_AT_PICKUP', 'driver.arrived_pickup')}
                       className="p-2.5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-slate-50 hover:bg-indigo-50 text-left transition-all text-xs font-bold"
                     >
                       <div className="text-indigo-600 font-extrabold">2. En Tienda</div>
@@ -598,21 +597,11 @@ export const TestingLab: React.FC = () => {
                     <button
                       type="button"
                       disabled={isAdvancingStage}
-                      onClick={() => handleAdvanceStage('PICKED_UP', 'order.in_transit')}
+                      onClick={() => handleAdvanceStage('IN_TRANSIT', 'order.in_transit')}
                       className="p-2.5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-slate-50 hover:bg-indigo-50 text-left transition-all text-xs font-bold"
                     >
-                      <div className="text-indigo-600 font-extrabold">3. En Tránsito</div>
+                      <div className="text-indigo-600 font-extrabold">3. En Ruta</div>
                       <div className="text-[10px] text-slate-500 font-normal">order.in_transit</div>
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={isAdvancingStage}
-                      onClick={() => handleAdvanceStage('ARRIVED_DROPOFF', 'driver.arrived_dropoff')}
-                      className="p-2.5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-slate-50 hover:bg-indigo-50 text-left transition-all text-xs font-bold"
-                    >
-                      <div className="text-indigo-600 font-extrabold">4. En Destino</div>
-                      <div className="text-[10px] text-slate-500 font-normal">driver.arrived_dropoff</div>
                     </button>
 
                     <button
