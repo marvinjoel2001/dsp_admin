@@ -7,6 +7,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Tenants } from './pages/Tenants';
 import { Orders } from './pages/Orders';
 import { Drivers } from './pages/Drivers';
+import { RegisterDriver } from './pages/RegisterDriver';
 import { LiveDispatch } from './pages/LiveDispatch';
 import { WebhooksConsole } from './pages/WebhooksConsole';
 import { QuoteSimulator } from './pages/QuoteSimulator';
@@ -39,6 +40,7 @@ const MainLayout: React.FC = () => {
             <Route path="/live-map" element={<LiveDispatch />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/drivers" element={<Drivers />} />
+            <Route path="/register-driver" element={<RegisterDriver />} />
             <Route path="/webhooks" element={<WebhooksConsole />} />
             <Route path="/quotes" element={<QuoteSimulator />} />
             <Route path="/testing-lab" element={<TestingLab />} />

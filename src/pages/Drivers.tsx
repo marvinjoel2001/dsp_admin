@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Star,
   Shield,
@@ -19,6 +20,7 @@ import {
   Coins,
   Wallet,
   RefreshCw,
+  UserPlus,
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -132,6 +134,14 @@ export const Drivers: React.FC = () => {
             Revisión de expedientes, licencias, SOAT, turnos en vivo y aprobación de repartidores
           </p>
         </div>
+
+        <Link
+          to="/register-driver"
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/20 shrink-0 self-start sm:self-auto"
+        >
+          <UserPlus className="w-4 h-4" />
+          Registrar Nuevo Conductor
+        </Link>
       </div>
 
       {/* Barra de Búsqueda y Filtros de Conductores */}
