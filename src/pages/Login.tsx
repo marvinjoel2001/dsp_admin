@@ -164,21 +164,39 @@ export const Login: React.FC = () => {
           <span>SSO / Single Sign-On</span>
         </button>
 
-        {/* Quick Access Credential Helper Pill */}
-        <div className="mt-5 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100/80 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-            <span className="text-[11px] font-medium text-indigo-900">
-              Acceso rápido: <strong className="font-bold">admin / admin</strong>
-            </span>
+        {/* Quick Access Credential Helper Pills */}
+        <div className="mt-5 space-y-2">
+          <div className="p-2.5 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <span className="text-[11px] font-medium text-indigo-900">
+                Super Admin: <strong className="font-bold">admin / admin</strong>
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleQuickFill('admin', 'admin')}
+              className="text-[10px] font-bold uppercase tracking-wider bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded-lg transition-all"
+            >
+              Llenar
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => handleQuickFill('admin', 'admin')}
-            className="text-[10px] font-extrabold uppercase tracking-wider bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded-lg transition-all"
-          >
-            Autocompletar
-          </button>
+
+          <div className="p-2.5 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span className="text-[11px] font-medium text-emerald-900">
+                DSP / Motos: <strong className="font-bold">motos@dsp.com / admin123</strong>
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleQuickFill('motos@dsp.com', 'admin123')}
+              className="text-[10px] font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded-lg transition-all"
+            >
+              Llenar
+            </button>
+          </div>
         </div>
 
         {/* Footer Link */}

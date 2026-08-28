@@ -23,10 +23,14 @@ import {
   FileImage,
   Layers,
   Zap,
+  Share2,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export const Orders: React.FC = () => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
@@ -47,12 +51,27 @@ export const Orders: React.FC = () => {
   const [selectedDriverForReassign, setSelectedDriverForReassign] = useState('');
   const [isSubmittingReassign, setIsSubmittingReassign] = useState(false);
 
+  // Modales Delegación DSP / Asociación
+  const [dspPartners, setDspPartners] = useState<any[]>([]);
+  const [isDelegateModalOpen, setIsDelegateModalOpen] = useState(false);
+  const [selectedDspForDelegation, setSelectedDspForDelegation] = useState('');
+  const [delegationPayout, setDelegationPayout] = useState<number>(5.0);
+  const [isSubmittingDelegation, setIsSubmittingDelegation] = useState(false);
+
+  const [isDspAssignModalOpen, setIsDspAssignModalOpen] = useState(false);
+  const [dspDriverToAssign, setDspDriverToAssign] = useState('');
+  const [isSubmittingDspAssign, setIsSubmittingDspAssign] = useState(false);
+
   const [isResendingWebhook, setIsResendingWebhook] = useState(false);
   const [isRetryingMatch, setIsRetryingMatch] = useState(false);
 
   const fetchOrders = () => {
     setIsLoading(true);
-    api.get('/orders')
+    const endpoint = user?.role === 'DSP_EXTERNAL' && user.dspPartnerId
+      ? `/orders?delegatedDspId=${user.dspPartnerId}`
+      : '/orders';
+
+    api.get(endpoint)
       .then((data) => {
         if (Array.isArray(data)) setOrders(data);
       })
@@ -65,7 +84,11 @@ export const Orders: React.FC = () => {
   };
 
   const fetchDrivers = () => {
-    api.get('/drivers')
+    const endpoint = user?.role === 'DSP_EXTERNAL' && user.dspPartnerId
+      ? `/drivers?dspPartnerId=${user.dspPartnerId}`
+      : '/drivers';
+
+    api.get(endpoint)
       .then((data) => {
         if (Array.isArray(data)) setDrivers(data);
       })
@@ -75,7 +98,73 @@ export const Orders: React.FC = () => {
   useEffect(() => {
     fetchOrders();
     fetchDrivers();
-  }, []);
+
+    if (user?.role === 'ADMIN') {
+      api.get('/dsp-partners')
+        .then((data) => {
+          if (Array.isArray(data)) setDspPartners(data);
+        })
+        .catch(() => {});
+    }
+  }, [user]);
+
+  const handleDelegateOrder = async () => {
+    if (!selectedOrder || !selectedDspForDelegation) {
+      alert('Por favor selecciona una asociación de motos.');
+      return;
+    }
+    setIsSubmittingDelegation(true);
+    try {
+      await api.post(`/orders/${selectedOrder.id}/delegate-dsp`, {
+        dspPartnerId: selectedDspForDelegation,
+        dspPayout: Number(delegationPayout),
+      });
+      alert('✅ Pedido delegado con éxito a la asociación.');
+      setIsDelegateModalOpen(false);
+      fetchOrders();
+      openOrderAudit(selectedOrder.id);
+    } catch (err: any) {
+      alert(`Error al delegar: ${err.message}`);
+    } finally {
+      setIsSubmittingDelegation(false);
+    }
+  };
+
+  const handleDspAcceptOrder = async () => {
+    if (!selectedOrder || !user?.dspPartnerId) return;
+    try {
+      await api.post(`/orders/${selectedOrder.id}/dsp-accept`, {
+        dspPartnerId: user.dspPartnerId,
+      });
+      alert('✅ Has aceptado el pedido para tu asociación.');
+      fetchOrders();
+      openOrderAudit(selectedOrder.id);
+    } catch (err: any) {
+      alert(`Error al aceptar pedido: ${err.message}`);
+    }
+  };
+
+  const handleDspAssignDriver = async () => {
+    if (!selectedOrder || !user?.dspPartnerId || !dspDriverToAssign) {
+      alert('Por favor selecciona un motorizado de tu lista.');
+      return;
+    }
+    setIsSubmittingDspAssign(true);
+    try {
+      await api.post(`/orders/${selectedOrder.id}/dsp-assign`, {
+        dspPartnerId: user.dspPartnerId,
+        driverId: dspDriverToAssign,
+      });
+      alert('✅ Pedido asignado exitosamente al conductor.');
+      setIsDspAssignModalOpen(false);
+      fetchOrders();
+      openOrderAudit(selectedOrder.id);
+    } catch (err: any) {
+      alert(`Error al asignar motorizado: ${err.message}`);
+    } finally {
+      setIsSubmittingDspAssign(false);
+    }
+  };
 
   // Detector de Órdenes Colgadas o Atascadas
   const stuckOrders = useMemo(() => {
@@ -518,54 +607,101 @@ export const Orders: React.FC = () => {
               <div className="p-4 bg-slate-900 text-white rounded-2xl space-y-3 shadow-sm">
                 <div className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-2">
                   <Zap className="w-4 h-4" />
-                  Herramientas de Resolución Operativa (Operador Admin)
+                  Herramientas de Resolución Operativa {user?.role === 'DSP_EXTERNAL' ? '(Asociación de Motos)' : '(Super Admin)'}
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {/* Forzar Estado */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTargetStatus('DELIVERED');
-                      setIsForceStatusModalOpen(true);
-                    }}
-                    className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Forzar Estado</span>
-                  </button>
+                  {user?.role === 'DSP_EXTERNAL' ? (
+                    <>
+                      {/* Aceptar Orden Delegada si está OFFERED */}
+                      {selectedOrder.dspStatus === 'OFFERED' && (
+                        <button
+                          type="button"
+                          onClick={handleDspAcceptOrder}
+                          className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Aceptar Orden</span>
+                        </button>
+                      )}
 
-                  {/* Reasignar Conductor */}
-                  <button
-                    type="button"
-                    onClick={() => setIsReassignModalOpen(true)}
-                    className="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                  >
-                    <Bike className="w-3.5 h-3.5" />
-                    <span>Reasignar Driver</span>
-                  </button>
+                      {/* Asignar Motorizado de la Asociación */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDspDriverToAssign('');
+                          setIsDspAssignModalOpen(true);
+                        }}
+                        className="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <Bike className="w-3.5 h-3.5" />
+                        <span>Asignar Mi Motorizado</span>
+                      </button>
 
-                  {/* Reenviar Webhook a Tienda */}
-                  <button
-                    type="button"
-                    disabled={isResendingWebhook}
-                    onClick={handleResendWebhook}
-                    className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                  >
-                    <Send className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>{isResendingWebhook ? 'Enviando...' : 'Reenviar Webhook'}</span>
-                  </button>
+                      {/* Forzar Estado */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTargetStatus('DELIVERED');
+                          setIsForceStatusModalOpen(true);
+                        }}
+                        className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Actualizar Estado</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {/* Super Admin: Delegar a Asociación de Motos / DSP */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedDspForDelegation(selectedOrder.delegatedDspId || '');
+                          setDelegationPayout(Number(selectedOrder.dspPayout || 4.5));
+                          setIsDelegateModalOpen(true);
+                        }}
+                        className="p-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                        <span>Delegar a Asociación</span>
+                      </button>
 
-                  {/* Reintentar Matchmaking */}
-                  <button
-                    type="button"
-                    disabled={isRetryingMatch}
-                    onClick={handleRetryMatch}
-                    className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isRetryingMatch ? 'animate-spin' : ''}`} />
-                    <span>Reintentar Búsqueda</span>
-                  </button>
+                      {/* Forzar Estado */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTargetStatus('DELIVERED');
+                          setIsForceStatusModalOpen(true);
+                        }}
+                        className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Forzar Estado</span>
+                      </button>
+
+                      {/* Reasignar Conductor */}
+                      <button
+                        type="button"
+                        onClick={() => setIsReassignModalOpen(true)}
+                        className="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <Bike className="w-3.5 h-3.5" />
+                        <span>Reasignar Driver</span>
+                      </button>
+
+                      {/* Reenviar Webhook a Tienda */}
+                      <button
+                        type="button"
+                        disabled={isResendingWebhook}
+                        onClick={handleResendWebhook}
+                        className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <Send className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>{isResendingWebhook ? 'Enviando...' : 'Reenviar Webhook'}</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -853,6 +989,162 @@ export const Orders: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Delegar Orden a Asociación de Motos / DSP */}
+      {isDelegateModalOpen && selectedOrder && (
+        <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <Share2 className="w-4 h-4 text-purple-600" />
+                Delegar Pedido a Asociación / DSP
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsDelegateModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div className="p-3 bg-purple-50 rounded-xl border border-purple-100 text-purple-900 space-y-1">
+                <div>Pedido: <strong>#{selectedOrder.id}</strong></div>
+                <div>Destino: <strong>{selectedOrder.dropoffAddress}</strong></div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Seleccionar Asociación de Motos / DSP *
+                </label>
+                <select
+                  value={selectedDspForDelegation}
+                  onChange={(e) => {
+                    setSelectedDspForDelegation(e.target.value);
+                    const partner = dspPartners.find((p) => p.id === e.target.value);
+                    if (partner && partner.payoutPerOrder) {
+                      setDelegationPayout(Number(partner.payoutPerOrder));
+                    }
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900"
+                >
+                  <option value="">-- Selecciona una asociación --</option>
+                  {dspPartners.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      🏍️ {p.name} ({p.code}) - {p.city || 'Santa Cruz'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Tarifa acordada para la Asociación ($)
+                </label>
+                <input
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  value={delegationPayout}
+                  onChange={(e) => setDelegationPayout(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900"
+                />
+              </div>
+
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsDelegateModalOpen(false)}
+                  className="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmittingDelegation || !selectedDspForDelegation}
+                  onClick={handleDelegateOrder}
+                  className="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-extrabold flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                >
+                  {isSubmittingDelegation ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <span>Confirmar y Enviar</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Asignar Motorizado de la Asociación (DSP Externo) */}
+      {isDspAssignModalOpen && selectedOrder && (
+        <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <Bike className="w-4 h-4 text-emerald-600" />
+                Asignar Conductor de Mi Asociación
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsDspAssignModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-emerald-900 space-y-1">
+                <div>Pedido: <strong>#{selectedOrder.id}</strong></div>
+                <div>Destino: <strong>{selectedOrder.dropoffAddress}</strong></div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Seleccionar Motorizado de tu Flota *
+                </label>
+                <select
+                  value={dspDriverToAssign}
+                  onChange={(e) => setDspDriverToAssign(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900"
+                >
+                  <option value="">-- Elige un conductor de tu lista --</option>
+                  {drivers.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      🏍️ {d.fullName} ({d.vehiclePlate || 'S/P'} - {d.phone}) {d.isOnline ? '🟢 Conectado' : '⚪ Desconectado'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsDspAssignModalOpen(false)}
+                  className="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmittingDspAssign || !dspDriverToAssign}
+                  onClick={handleDspAssignDriver}
+                  className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                >
+                  {isSubmittingDspAssign ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <span>Asignar y Despachar</span>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

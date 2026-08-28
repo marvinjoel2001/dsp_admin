@@ -22,9 +22,12 @@ import { useAuth } from '../context/AuthContext';
 export const Sidebar: React.FC = () => {
   const { logout, user } = useAuth();
 
-  const navItems = [
+  const isDspExternal = user?.role === 'DSP_EXTERNAL';
+
+  const superAdminNavItems = [
     { label: 'Panel General', to: '/', icon: LayoutDashboard },
     { label: 'Tiendas y Claves API', to: '/tenants', icon: Store },
+    { label: 'Asociaciones DSP / Motos', to: '/dsp-partners', icon: ShieldCheck },
     { label: 'Cobranza a Comercios', to: '/merchant-settlements', icon: Receipt },
     { label: 'Pagos a Repartidores', to: '/driver-payouts', icon: Wallet },
     { label: 'Mapa de Flota en Vivo', to: '/live-map', icon: MapPin },
@@ -35,6 +38,16 @@ export const Sidebar: React.FC = () => {
     { label: 'Simulador de Tarifas', to: '/quotes', icon: Calculator },
     { label: 'Laboratorio E2E & Webhooks', to: '/testing-lab', icon: FlaskConical },
   ];
+
+  const dspExternalNavItems = [
+    { label: 'Panel General', to: '/', icon: LayoutDashboard },
+    { label: 'Órdenes Delegadas', to: '/orders', icon: Package },
+    { label: 'Mis Motorizados', to: '/drivers', icon: Bike },
+    { label: 'Mapa de Mi Flota', to: '/live-map', icon: MapPin },
+    { label: 'Mis Liquidaciones', to: '/driver-payouts', icon: Wallet },
+  ];
+
+  const navItems = isDspExternal ? dspExternalNavItems : superAdminNavItems;
 
   const apiBase =
     (process.env.API_BASE_URL as string) ||
@@ -51,11 +64,15 @@ export const Sidebar: React.FC = () => {
             <img src="/images/logo.png" alt="Chiringuito DSP" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="font-extrabold text-base tracking-tight text-slate-900">
-              Chiringuito DSP
+            <h1 className="font-extrabold text-base tracking-tight text-slate-900 truncate max-w-[140px]" title={user?.fullName || 'Chiringuito DSP'}>
+              {user?.fullName || 'Chiringuito DSP'}
             </h1>
-            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200/50">
-              Centro de Operaciones
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+              isDspExternal
+                ? 'text-emerald-700 bg-emerald-50 border-emerald-200/60'
+                : 'text-indigo-600 bg-indigo-50 border-indigo-200/50'
+            }`}>
+              {isDspExternal ? 'Asociación Motos' : 'Super Admin'}
             </span>
           </div>
         </div>

@@ -17,8 +17,10 @@ import {
 } from 'lucide-react';
 import { StatCard } from '../components/StatCard';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     activeOrders: 0,
     onlineDrivers: 0,
@@ -40,11 +42,18 @@ export const Dashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     setIsLoading(true);
     try {
+      const ordersEndpoint = user?.role === 'DSP_EXTERNAL' && user.dspPartnerId
+        ? `/orders?delegatedDspId=${user.dspPartnerId}`
+        : '/orders';
+      const driversEndpoint = user?.role === 'DSP_EXTERNAL' && user.dspPartnerId
+        ? `/drivers?dspPartnerId=${user.dspPartnerId}`
+        : '/drivers';
+
       const [ordersData, driversData, webhooksData, finMetrics] = await Promise.all([
-        api.get('/orders').catch(() => []),
-        api.get('/drivers').catch(() => []),
-        api.get('/webhooks/deliveries').catch(() => []),
-        api.get('/settlements/dashboard-metrics').catch(() => null),
+        api.get(ordersEndpoint).catch(() => []),
+        api.get(driversEndpoint).catch(() => []),
+        user?.role === 'DSP_EXTERNAL' ? [] : api.get('/webhooks/deliveries').catch(() => []),
+        user?.role === 'DSP_EXTERNAL' ? null : api.get('/settlements/dashboard-metrics').catch(() => null),
       ]);
 
       if (Array.isArray(ordersData)) {
@@ -64,6 +73,8 @@ export const Dashboard: React.FC = () => {
         setStats((prev) => ({
           ...prev,
           onlineDrivers: onlineCount,
+          totalDrivers: driversData.length,
+          verifiedDrivers: driversData.filter((d: any) => (d.verificationStatus || '').toLowerCase() === 'verified').length,
         }));
       }
 

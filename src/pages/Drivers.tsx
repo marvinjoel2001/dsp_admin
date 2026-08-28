@@ -20,17 +20,35 @@ import {
   Coins,
   Wallet,
   RefreshCw,
-  UserPlus,
+  Plus,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export const Drivers: React.FC = () => {
+  const { user } = useAuth();
   const [drivers, setDrivers] = useState<any[]>([]);
   const [selectedDriverForDocs, setSelectedDriverForDocs] = useState<any | null>(null);
   const [selectedPreviewImage, setSelectedPreviewImage] = useState<{ title: string; url: string } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'online'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Modal Registro Conductor
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [registerSubmitting, setRegisterSubmitting] = useState(false);
+  const [partnersList, setPartnersList] = useState<any[]>([]);
+  const [regForm, setRegForm] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+    password: '',
+    ciNumber: '',
+    homeAddress: '',
+    vehicleType: 'MOTORCYCLE',
+    vehiclePlate: '',
+    dspPartnerId: '',
+  });
 
   // Modal Ajuste de Saldo / Billetera
   const [adjustDriver, setAdjustDriver] = useState<any | null>(null);
@@ -40,7 +58,11 @@ export const Drivers: React.FC = () => {
   const [isSubmittingAdjust, setIsSubmittingAdjust] = useState(false);
 
   const fetchDrivers = () => {
-    api.get('/drivers')
+    const endpoint = user?.role === 'DSP_EXTERNAL' && user.dspPartnerId
+      ? `/drivers?dspPartnerId=${user.dspPartnerId}`
+      : '/drivers';
+
+    api.get(endpoint)
       .then((data: any) => {
         if (Array.isArray(data)) setDrivers(data);
       })
@@ -51,7 +73,57 @@ export const Drivers: React.FC = () => {
 
   useEffect(() => {
     fetchDrivers();
-  }, []);
+
+    if (user?.role === 'ADMIN') {
+      api.get('/dsp-partners')
+        .then((data: any) => {
+          if (Array.isArray(data)) setPartnersList(data);
+        })
+        .catch(() => {});
+    }
+  }, [user]);
+
+  const handleRegisterDriver = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regForm.fullName || !regForm.phone || !regForm.email || !regForm.password) {
+      alert('Por favor completa todos los campos requeridos (*)');
+      return;
+    }
+
+    setRegisterSubmitting(true);
+    try {
+      await api.post('/drivers', {
+        fullName: regForm.fullName.trim(),
+        phone: regForm.phone.trim(),
+        email: regForm.email.trim().toLowerCase(),
+        password: regForm.password,
+        ciNumber: regForm.ciNumber.trim() || undefined,
+        homeAddress: regForm.homeAddress.trim() || undefined,
+        vehicleType: regForm.vehicleType,
+        vehiclePlate: regForm.vehiclePlate.trim().toUpperCase() || undefined,
+        dspPartnerId: user?.role === 'DSP_EXTERNAL' ? user.dspPartnerId : (regForm.dspPartnerId || undefined),
+      });
+
+      alert('✅ Conductor registrado y verificado exitosamente.');
+      setIsRegisterModalOpen(false);
+      setRegForm({
+        fullName: '',
+        phone: '',
+        email: '',
+        password: '',
+        ciNumber: '',
+        homeAddress: '',
+        vehicleType: 'MOTORCYCLE',
+        vehiclePlate: '',
+        dspPartnerId: '',
+      });
+      fetchDrivers();
+    } catch (err: any) {
+      alert(`Error al registrar conductor: ${err.message}`);
+    } finally {
+      setRegisterSubmitting(false);
+    }
+  };
 
   const handleToggleOnline = async (driverId: string, currentStatus: boolean) => {
     try {
@@ -128,20 +200,23 @@ export const Drivers: React.FC = () => {
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
             <Shield className="w-6 h-6 text-emerald-600" />
-            Flota de Conductores y Verificación de Documentos
+            {user?.role === 'DSP_EXTERNAL' ? 'Motorizados de la Asociación' : 'Flota de Conductores y Verificación'}
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-1">
-            Revisión de expedientes, licencias, SOAT, turnos en vivo y aprobación de repartidores
+            {user?.role === 'DSP_EXTERNAL'
+              ? 'Gestiona a los miembros de tu asociación, regístralos y monitorea sus turnos.'
+              : 'Revisión de expedientes, licencias, SOAT, turnos en vivo y registro de repartidores'}
           </p>
         </div>
 
-        <Link
-          to="/register-driver"
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/20 shrink-0 self-start sm:self-auto"
+        <button
+          type="button"
+          onClick={() => setIsRegisterModalOpen(true)}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm shadow-emerald-600/20 cursor-pointer shrink-0"
         >
-          <UserPlus className="w-4 h-4" />
-          Registrar Nuevo Conductor
-        </Link>
+          <Plus className="w-4 h-4" />
+          <span>Registrar Conductor</span>
+        </button>
       </div>
 
       {/* Barra de Búsqueda y Filtros de Conductores */}
@@ -558,6 +633,196 @@ export const Drivers: React.FC = () => {
                   ) : (
                     <span>Aplicar Ajuste</span>
                   )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Registrar Nuevo Conductor */}
+      {isRegisterModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95">
+            <button
+              type="button"
+              onClick={() => setIsRegisterModalOpen(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">
+                  Registrar Nuevo Conductor
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {user?.role === 'DSP_EXTERNAL'
+                    ? 'Agrega un motorizado a tu asociación. Quedará verificado automáticamente.'
+                    : 'Crea un repartidor verificado para la flota interna o una asociación específica.'}
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleRegisterDriver} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Nombre Completo *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={regForm.fullName}
+                    onChange={(e) => setRegForm({ ...regForm, fullName: e.target.value })}
+                    placeholder="Ej: Marcelo Suárez"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Celular / WhatsApp *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={regForm.phone}
+                    onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
+                    placeholder="+591 70012345"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Correo Electrónico *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={regForm.email}
+                    onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
+                    placeholder="marcelo@ejemplo.com"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Contraseña de Acceso *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={regForm.password}
+                    onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
+                    placeholder="Ej: 123456"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Cédula de Identidad (CI)
+                  </label>
+                  <input
+                    type="text"
+                    value={regForm.ciNumber}
+                    onChange={(e) => setRegForm({ ...regForm, ciNumber: e.target.value })}
+                    placeholder="8472910 SC"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Placa del Vehículo
+                  </label>
+                  <input
+                    type="text"
+                    value={regForm.vehiclePlate}
+                    onChange={(e) => setRegForm({ ...regForm, vehiclePlate: e.target.value.toUpperCase() })}
+                    placeholder="3456-XYZ"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Tipo de Vehículo
+                  </label>
+                  <select
+                    value={regForm.vehicleType}
+                    onChange={(e) => setRegForm({ ...regForm, vehicleType: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="MOTORCYCLE">🏍️ Motocicleta</option>
+                    <option value="BICYCLE">🚲 Bicicleta</option>
+                    <option value="CAR">🚗 Automóvil</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Dirección Domicilio
+                  </label>
+                  <input
+                    type="text"
+                    value={regForm.homeAddress}
+                    onChange={(e) => setRegForm({ ...regForm, homeAddress: e.target.value })}
+                    placeholder="Barrio / Zona / Calle"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Si es Super Admin, puede elegir la asociación */}
+              {user?.role === 'ADMIN' && (
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Asignar a Asociación de Motos / DSP (Opcional)
+                  </label>
+                  <select
+                    value={regForm.dspPartnerId}
+                    onChange={(e) => setRegForm({ ...regForm, dspPartnerId: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="">🏢 Flota Directa Propia (Sin Asociación)</option>
+                    {partnersList.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        🏍️ {p.name} ({p.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsRegisterModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={registerSubmitting}
+                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm shadow-emerald-600/20"
+                >
+                  {registerSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : null}
+                  <span>Guardar y Activar Conductor</span>
                 </button>
               </div>
             </form>

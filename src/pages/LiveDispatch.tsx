@@ -26,6 +26,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 // ==========================================
 // VECTORES SVG OFICIALES DE LA APP
@@ -180,6 +181,7 @@ const destinationIcon = new L.DivIcon({
 });
 
 export const LiveDispatch: React.FC = () => {
+  const { user } = useAuth();
   const [drivers, setDrivers] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<any | null>(null);
@@ -196,9 +198,16 @@ export const LiveDispatch: React.FC = () => {
   const loadRealData = async () => {
     setIsLoading(true);
     try {
+      const driversEndpoint = user?.role === 'DSP_EXTERNAL' && user.dspPartnerId
+        ? `/drivers?dspPartnerId=${user.dspPartnerId}`
+        : '/drivers';
+      const ordersEndpoint = user?.role === 'DSP_EXTERNAL' && user.dspPartnerId
+        ? `/orders?delegatedDspId=${user.dspPartnerId}`
+        : '/orders';
+
       const [driversData, ordersData] = await Promise.all([
-        api.get('/drivers').catch(() => []),
-        api.get('/orders').catch(() => []),
+        api.get(driversEndpoint).catch(() => []),
+        api.get(ordersEndpoint).catch(() => []),
       ]);
 
       if (Array.isArray(driversData)) {
