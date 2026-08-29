@@ -229,33 +229,25 @@ export const TestingLab: React.FC = () => {
         dropoffAddress,
         dropoffLat,
         dropoffLng,
-        customerName,
-        customerPhone,
-        items: [{ description: packageItems, quantity: 1, price: orderPrice }],
-        price: orderPrice,
-        driverPayout,
         packageNotes,
         merchantReference: `ORD-${Date.now().toString().slice(-6)}`,
       };
 
-      // Si el backend tiene endpoint autenticado con api-key:
-      let created;
-      try {
-        created = await api.post('/orders', orderPayload, {
-          'x-api-key': apiKey,
-        });
-      } catch {
-        // Fallback vía endpoint admin si el apiKeyRaw no está disponible en memoria
-        created = await api.post('/orders', {
-          ...orderPayload,
-          tenantId: selectedTenant.id,
-        });
-      }
+      const created = await api.post('/orders', orderPayload, {
+        'x-api-key': apiKey,
+      });
 
-      setActiveOrder(created);
+      const activeOrderWithMeta = {
+        ...created,
+        customerName,
+        customerPhone,
+        items: [{ description: packageItems, quantity: 1, price: orderPrice }],
+      };
+
+      setActiveOrder(activeOrderWithMeta);
 
       // Emitir log inicial de creación de orden
-      triggerSimulatedWebhook('order.created', created);
+      triggerSimulatedWebhook('order.created', activeOrderWithMeta);
     } catch (err: any) {
       console.error('Error al crear orden:', err);
       alert(`Error al crear la orden: ${err.message}`);
