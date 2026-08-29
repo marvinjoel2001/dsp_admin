@@ -14,6 +14,7 @@ import {
   Receipt,
   DollarSign,
   AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { StatCard } from '../components/StatCard';
 import { api } from '../services/api';
@@ -109,10 +110,31 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="p-8 space-y-8 max-w-[1700px] mx-auto">
+      {/* Cabecera y Botón Refrescar */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Métricas y Operaciones en Vivo</h2>
+          <p className="text-xs text-slate-500 font-medium">Monitoreo de entregas, conductores y liquidaciones en tiempo real</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => fetchDashboardData()}
+          disabled={isLoading}
+          className="bg-white hover:bg-slate-50 text-slate-700 font-bold py-2 px-3.5 rounded-xl text-xs flex items-center gap-2 transition-all border border-slate-200 shadow-xs cursor-pointer disabled:opacity-50"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${isLoading ? 'animate-spin' : ''}`} />
+          <span>{isLoading ? 'Actualizando...' : 'Actualizar Panel'}</span>
+        </button>
+      </div>
+
       {/* 1. Tarjetas de Métricas Operativas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard

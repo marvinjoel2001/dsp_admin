@@ -189,7 +189,7 @@ export const RegisterDriver: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={handleCopyWhatsAppMessage}
@@ -198,6 +198,14 @@ export const RegisterDriver: React.FC = () => {
                 {copiedCredentials ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
                 {copiedCredentials ? '¡Copiado para WhatsApp!' : 'Copiar Mensaje para WhatsApp'}
               </button>
+
+              <Link
+                to="/drivers"
+                className="flex items-center gap-1.5 px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-indigo-600/20"
+              >
+                <Bike className="w-4 h-4" />
+                <span>Ver en Lista de Flota</span>
+              </Link>
 
               <button
                 type="button"

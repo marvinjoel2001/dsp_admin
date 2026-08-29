@@ -56,18 +56,23 @@ export const Drivers: React.FC = () => {
   const [adjustType, setAdjustType] = useState<'BONUS' | 'PENALTY'>('BONUS');
   const [adjustDescription, setAdjustDescription] = useState('');
   const [isSubmittingAdjust, setIsSubmittingAdjust] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchDrivers = () => {
+    setIsLoading(true);
     const endpoint = user?.role === 'DSP_EXTERNAL' && user.dspPartnerId
       ? `/drivers?dspPartnerId=${user.dspPartnerId}`
       : '/drivers';
 
-    api.get(endpoint)
+    return api.get(endpoint)
       .then((data: any) => {
         if (Array.isArray(data)) setDrivers(data);
       })
       .catch((err) => {
         console.error('Error fetching drivers:', err);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 
@@ -81,6 +86,12 @@ export const Drivers: React.FC = () => {
         })
         .catch(() => {});
     }
+
+    const interval = setInterval(() => {
+      fetchDrivers();
+    }, 25000);
+
+    return () => clearInterval(interval);
   }, [user]);
 
   const handleRegisterDriver = async (e: React.FormEvent) => {
@@ -145,6 +156,12 @@ export const Drivers: React.FC = () => {
       if (selectedDriverForDocs && selectedDriverForDocs.id === driverId) {
         setSelectedDriverForDocs({ ...selectedDriverForDocs, verificationStatus: status });
       }
+      alert(
+        status === 'verified'
+          ? '✅ Conductor verificado y aprobado exitosamente. Ahora puede conectarse y recibir pedidos.'
+          : '⚠️ Conductor marcado como rechazado.'
+      );
+      fetchDrivers();
     } catch (err: any) {
       alert(`Error al actualizar estado: ${err.message}`);
     } finally {
@@ -209,14 +226,27 @@ export const Drivers: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsRegisterModalOpen(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm shadow-emerald-600/20 cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Registrar Conductor</span>
-        </button>
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => fetchDrivers()}
+            disabled={isLoading}
+            className="bg-white hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all border border-slate-200 shadow-xs cursor-pointer disabled:opacity-50"
+            title="Recargar lista de conductores"
+          >
+            <RefreshCw className={`w-4 h-4 text-emerald-600 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? 'Actualizando...' : 'Actualizar Flota'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsRegisterModalOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm shadow-emerald-600/20 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Registrar Conductor</span>
+          </button>
+        </div>
       </div>
 
       {/* Barra de Búsqueda y Filtros de Conductores */}
@@ -335,13 +365,30 @@ export const Drivers: React.FC = () => {
                   )}
                 </div>
 
-                <button
-                  onClick={() => setSelectedDriverForDocs(d)}
-                  className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 font-bold text-[11px] rounded-lg border border-slate-300 transition-colors flex items-center gap-1 shadow-2xs"
-                >
-                  <Eye className="w-3.5 h-3.5 text-slate-600" />
-                  Verificar Fotos
-                </button>
+                <div className="flex items-center gap-1.5">
+                  {isPending && (
+                    <button
+                      type="button"
+                      disabled={isUpdating}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleVerifyDriver(d.id, 'verified');
+                      }}
+                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                      title="Aprobar conductor directamente"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Aprobar
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setSelectedDriverForDocs(d)}
+                    className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 font-bold text-[11px] rounded-lg border border-slate-300 transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-slate-600" />
+                    Fotos
+                  </button>
+                </div>
               </div>
 
               {/* Estadísticas de Vehículo y Billetera */}

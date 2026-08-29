@@ -230,6 +230,17 @@ export const MerchantSettlements: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             type="button"
+            onClick={() => fetchSettlements()}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+            title="Recargar liquidaciones de comercios"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-indigo-600 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? 'Actualizando...' : 'Actualizar Liquidaciones'}</span>
+          </button>
+
+          <button
+            type="button"
             onClick={exportSettlementsToCSV}
             className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 shadow-xs transition-all cursor-pointer"
           >

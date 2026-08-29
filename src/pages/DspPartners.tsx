@@ -14,6 +14,7 @@ import {
   Sparkles,
   Loader2,
   DollarSign,
+  RefreshCw,
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -132,14 +133,27 @@ export const DspPartners: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm shadow-indigo-600/20 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Registrar Asociación</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={fetchPartners}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+            title="Recargar asociaciones"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-indigo-600 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? 'Actualizando...' : 'Actualizar'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm shadow-indigo-600/20 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Registrar Asociación</span>
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}

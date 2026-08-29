@@ -5,6 +5,11 @@ const API_BASE_URL =
 
 async function handleResponse(res: Response) {
   if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem('dsp_admin_token');
+      localStorage.removeItem('dsp_admin_user');
+      window.dispatchEvent(new Event('auth:unauthorized'));
+    }
     let errorMessage = `Error HTTP ${res.status}`;
     try {
       const errData = await res.json();

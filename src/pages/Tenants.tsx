@@ -10,14 +10,19 @@ export const Tenants: React.FC = () => {
   const [webhookUrl, setWebhookUrl] = useState('');
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchTenants = () => {
-    api.get('/tenants')
+    setIsLoading(true);
+    return api.get('/tenants')
       .then((data) => {
         if (Array.isArray(data)) setTenants(data);
       })
       .catch((err) => {
         console.error('Error fetching tenants:', err);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 
@@ -52,13 +57,24 @@ export const Tenants: React.FC = () => {
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Tiendas y Comercios B2B</h2>
           <p className="text-xs text-slate-500 font-medium">Gestión de comercios, generación de Claves API seguras y configuración de Webhooks</p>
         </div>
-        <button
-          onClick={() => { setIsModalOpen(true); setCreatedKey(null); }}
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/20"
-        >
-          <Plus className="w-4 h-4" />
-          Registrar Nueva Tienda
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => fetchTenants()}
+            disabled={isLoading}
+            className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold px-3.5 py-2.5 rounded-xl text-xs transition-all border border-slate-200 shadow-xs cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? 'Actualizando...' : 'Actualizar Tiendas'}</span>
+          </button>
+          <button
+            onClick={() => { setIsModalOpen(true); setCreatedKey(null); }}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Registrar Nueva Tienda
+          </button>
+        </div>
       </div>
 
       {/* Tabla de Comercios */}
