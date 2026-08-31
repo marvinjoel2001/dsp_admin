@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
+import L from 'leaflet';
 import {
   Package,
   Search,
@@ -25,9 +27,49 @@ import {
   Zap,
   Share2,
   ArrowRightLeft,
+  PlusCircle,
+  Calendar,
+  DollarSign,
+  Compass,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+
+// Íconos visuales de Mapa para Recogida y Entrega
+const pickupMarkerIcon = new L.DivIcon({
+  className: 'custom-pickup-marker',
+  html: `
+    <div style="background:#4F46E5; color:white; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.35); font-weight:900; font-size:16px;">
+      🏪
+    </div>
+  `,
+  iconSize: [36, 36],
+  iconAnchor: [18, 36],
+});
+
+const dropoffMarkerIcon = new L.DivIcon({
+  className: 'custom-dropoff-marker',
+  html: `
+    <div style="background:#059669; color:white; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.35); font-weight:900; font-size:16px;">
+      📍
+    </div>
+  `,
+  iconSize: [36, 36],
+  iconAnchor: [18, 36],
+});
+
+// Componente clickeable en el mapa para fijar puntos de recogida y entrega
+const LocationPicker: React.FC<{
+  mode: 'pickup' | 'dropoff';
+  onLocationSelect: (lat: number, lng: number) => void;
+}> = ({ mode, onLocationSelect }) => {
+  useMapEvents({
+    click(e) {
+      onLocationSelect(parseFloat(e.latlng.lat.toFixed(6)), parseFloat(e.latlng.lng.toFixed(6)));
+    },
+  });
+  return null;
+};
 
 export const Orders: React.FC = () => {
   const { user } = useAuth();
@@ -64,6 +106,23 @@ export const Orders: React.FC = () => {
 
   const [isResendingWebhook, setIsResendingWebhook] = useState(false);
   const [isRetryingMatch, setIsRetryingMatch] = useState(false);
+
+  // Estados del Modal Crear Pedido Manual con Mapa
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [tenants, setTenants] = useState<any[]>([]);
+  const [selectedTenantId, setSelectedTenantId] = useState('');
+  const [activePickerMode, setActivePickerMode] = useState<'pickup' | 'dropoff'>('pickup');
+  const [newMerchantRef, setNewMerchantRef] = useState('');
+  const [newPickupAddress, setNewPickupAddress] = useState('Restaurante Don Chicho, Av. San Martín #450');
+  const [newPickupLat, setNewPickupLat] = useState(-17.7833);
+  const [newPickupLng, setNewPickupLng] = useState(-63.1821);
+  const [newDropoffAddress, setNewDropoffAddress] = useState('Condominio Las Palmas, Av. Busch #820');
+  const [newDropoffLat, setNewDropoffLat] = useState(-17.7950);
+  const [newDropoffLng, setNewDropoffLng] = useState(-63.1700);
+  const [newPackageNotes, setNewPackageNotes] = useState('Entregar en recepción. Tocar timbre.');
+  const [newPickupTime, setNewPickupTime] = useState('Inmediato (10-15 min)');
+  const [newDeliveryTime, setNewDeliveryTime] = useState('Estimado 30-40 min');
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
   const fetchOrders = () => {
     setIsLoading(true);
@@ -103,6 +162,15 @@ export const Orders: React.FC = () => {
       api.get('/dsp-partners')
         .then((data) => {
           if (Array.isArray(data)) setDspPartners(data);
+        })
+        .catch(() => {});
+
+      api.get('/tenants')
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setTenants(data);
+            if (data.length > 0) setSelectedTenantId(data[0].id);
+          }
         })
         .catch(() => {});
     }
@@ -296,6 +364,60 @@ export const Orders: React.FC = () => {
     }
   };
 
+  // Cálculo dinámico de distancia y tarifa Haversine para la orden manual
+  const calculatedMetrics = useMemo(() => {
+    const R = 6371;
+    const dLat = ((newDropoffLat - newPickupLat) * Math.PI) / 180;
+    const dLon = ((newDropoffLng - newPickupLng) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((newPickupLat * Math.PI) / 180) *
+        Math.cos((newDropoffLat * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distanceKm = parseFloat((R * c).toFixed(2));
+    const durationMinutes = Math.max(Math.ceil((distanceKm / 22) * 60 + 8), 10);
+    const price = parseFloat((5.0 + distanceKm * 2.50).toFixed(2));
+    const driverPayout = parseFloat((price * 0.80).toFixed(2));
+
+    return { distanceKm, durationMinutes, price, driverPayout };
+  }, [newPickupLat, newPickupLng, newDropoffLat, newDropoffLng]);
+
+  // Enviar Creación de Orden Manual
+  const handleCreateManualOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPickupAddress || !newDropoffAddress) {
+      alert('Por favor ingresa las direcciones de recogida y entrega.');
+      return;
+    }
+
+    setIsCreatingOrder(true);
+    try {
+      const payload = {
+        tenantId: selectedTenantId || undefined,
+        merchantReference: newMerchantRef || `MANUAL-${Math.floor(1000 + Math.random() * 9000)}`,
+        pickupAddress: newPickupAddress,
+        pickupLat: newPickupLat,
+        pickupLng: newPickupLng,
+        dropoffAddress: newDropoffAddress,
+        dropoffLat: newDropoffLat,
+        dropoffLng: newDropoffLng,
+        packageNotes: `${newPackageNotes ? newPackageNotes + ' | ' : ''}Horario sugerido: ${newPickupTime} -> ${newDeliveryTime}`,
+      };
+
+      const result: any = await api.post('/orders/manual', payload);
+      alert(`✅ ¡Orden #${result.id} creada exitosamente!\nMatchmaking y despacho geoespacial activado.`);
+      setIsCreateModalOpen(false);
+      fetchOrders();
+      openOrderAudit(result.id);
+    } catch (err: any) {
+      alert(`Error creando orden manual: ${err.message}`);
+    } finally {
+      setIsCreatingOrder(false);
+    }
+  };
+
   const copyProofUrl = (url: string) => {
     navigator.clipboard.writeText(url);
     setCopiedLink(true);
@@ -317,6 +439,14 @@ export const Orders: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all shrink-0 shadow-sm cursor-pointer"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>+ Crear Despacho Manual</span>
+          </button>
+
           <button
             onClick={fetchOrders}
             disabled={isLoading}
@@ -542,11 +672,39 @@ export const Orders: React.FC = () => {
                       </td>
 
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedOrder(o);
+                              setTargetStatus(o.status === 'DELIVERED' ? 'CANCELLED' : 'DELIVERED');
+                              setIsForceStatusModalOpen(true);
+                            }}
+                            className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-all font-extrabold text-[11px] flex items-center gap-1 cursor-pointer border border-emerald-200"
+                            title="Cambiar estado forzosamente"
+                          >
+                            <Zap className="w-3 h-3 text-emerald-600" />
+                            <span>Forzar</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedOrder(o);
+                              setSelectedDriverForReassign(o.driverId || '');
+                              setIsReassignModalOpen(true);
+                            }}
+                            className="px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition-all font-extrabold text-[11px] flex items-center gap-1 cursor-pointer border border-indigo-200"
+                            title="Reasignar conductor"
+                          >
+                            <Bike className="w-3 h-3 text-indigo-600" />
+                            <span>Reasignar</span>
+                          </button>
+
                           <button
                             type="button"
                             onClick={() => openOrderAudit(o.id)}
-                            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all font-bold text-xs flex items-center gap-1 cursor-pointer"
+                            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all font-bold text-xs flex items-center gap-1 cursor-pointer"
                             title="Auditoría Completa y Soporte Operativo"
                           >
                             <Eye className="w-4 h-4 text-slate-600" />
@@ -565,7 +723,7 @@ export const Orders: React.FC = () => {
 
       {/* Modal Integral de Soporte, Forzar Estados, POD y Auditoría */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 modal-overlay-root bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200/80 overflow-hidden">
             {/* Header del Modal */}
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -848,7 +1006,7 @@ export const Orders: React.FC = () => {
 
       {/* Modal Operativo 1: Forzar Estado Manualmente */}
       {isForceStatusModalOpen && selectedOrder && (
-        <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -952,7 +1110,7 @@ export const Orders: React.FC = () => {
 
       {/* Modal Operativo 2: Reasignación de Conductor */}
       {isReassignModalOpen && selectedOrder && (
-        <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -1019,7 +1177,7 @@ export const Orders: React.FC = () => {
 
       {/* Modal Delegar Orden a Asociación de Motos / DSP */}
       {isDelegateModalOpen && selectedOrder && (
-        <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -1105,9 +1263,9 @@ export const Orders: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Asignar Motorizado de la Asociación (DSP Externo) */}
+      {/* Modal DSP: Asignar Motorizado de su Asociación */}
       {isDspAssignModalOpen && selectedOrder && (
-        <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -1169,6 +1327,294 @@ export const Orders: React.FC = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Crear Despacho Manual con Mapa Interactivo */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 modal-overlay-root bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200/80 overflow-hidden">
+            {/* Header */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+              <div>
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <PlusCircle className="w-5 h-5 text-emerald-600" />
+                  Nuevo Despacho Manual con Mapa Interactivo
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Haz clic en el mapa para posicionar el origen y destino con cálculo de ruta y tarifa en tiempo real.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(false)}
+                className="p-1 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Contenido con Scroll */}
+            <form onSubmit={handleCreateManualOrder} className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Selector de Tienda / Tenant y Referencia */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Comercio Emisor (Tenant)
+                  </label>
+                  <select
+                    value={selectedTenantId}
+                    onChange={(e) => setSelectedTenantId(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900"
+                  >
+                    <option value="">-- Usar Comercio Principal por Defecto --</option>
+                    {tenants.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        🏢 {t.name} ({t.city || 'Santa Cruz'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Nº de Referencia de Pedido (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ej: PEDIDO-9481"
+                    value={newMerchantRef}
+                    onChange={(e) => setNewMerchantRef(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Botones de Selector de Modo en Mapa */}
+              <div className="flex items-center justify-between bg-slate-100 p-2 rounded-2xl">
+                <span className="text-xs font-bold text-slate-600 pl-2">
+                  📍 Modo de Marcado en Mapa:
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActivePickerMode('pickup')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer ${
+                      activePickerMode === 'pickup'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>🏪 Origen / Tienda</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActivePickerMode('dropoff')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer ${
+                      activePickerMode === 'dropoff'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>📍 Destino / Entrega</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Mapa Interactivo con Leaflet */}
+              <div className="relative rounded-2xl overflow-hidden border border-slate-200 h-[280px] shadow-inner">
+                <MapContainer
+                  center={[newPickupLat, newPickupLng]}
+                  zoom={13}
+                  style={{ height: '100%', width: '100%' }}
+                >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; OpenStreetMap contributors'
+                  />
+                  
+                  {/* Listener de Clics en el Mapa */}
+                  {React.createElement(() => {
+                    useMapEvents({
+                      click(e) {
+                        if (activePickerMode === 'pickup') {
+                          setNewPickupLat(Number(e.latlng.lat.toFixed(6)));
+                          setNewPickupLng(Number(e.latlng.lng.toFixed(6)));
+                        } else {
+                          setNewDropoffLat(Number(e.latlng.lat.toFixed(6)));
+                          setNewDropoffLng(Number(e.latlng.lng.toFixed(6)));
+                        }
+                      },
+                    });
+                    return null;
+                  })}
+
+                  {/* Marcador de Recogida */}
+                  <Marker position={[newPickupLat, newPickupLng]} icon={pickupMarkerIcon}>
+                    <Popup>
+                      <div className="text-xs">
+                        <strong>🏪 Origen / Recogida</strong>
+                        <div>{newPickupAddress}</div>
+                      </div>
+                    </Popup>
+                  </Marker>
+
+                  {/* Marcador de Destino */}
+                  <Marker position={[newDropoffLat, newDropoffLng]} icon={dropoffMarkerIcon}>
+                    <Popup>
+                      <div className="text-xs">
+                        <strong>📍 Destino / Entrega</strong>
+                        <div>{newDropoffAddress}</div>
+                      </div>
+                    </Popup>
+                  </Marker>
+
+                  {/* Línea de Trayectoria Estimada */}
+                  <Polyline
+                    positions={[
+                      [newPickupLat, newPickupLng],
+                      [newDropoffLat, newDropoffLng],
+                    ]}
+                    color="#4F46E5"
+                    dashArray="6, 8"
+                    weight={3}
+                  />
+                </MapContainer>
+
+                <div className="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] px-3 py-1.5 rounded-lg z-[400] font-medium">
+                  {activePickerMode === 'pickup' ? '👉 Haz clic para mover el punto de RECOGIDA (🏪)' : '👉 Haz clic para mover el punto de ENTREGA (📍)'}
+                </div>
+              </div>
+
+              {/* Inputs de Direcciones y Horarios */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-3">
+                  <div className="font-extrabold text-indigo-900 flex items-center gap-1.5">
+                    <Store className="w-4 h-4 text-indigo-600" />
+                    Punto de Recogida (Origen)
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Dirección de Recogida *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newPickupAddress}
+                      onChange={(e) => setNewPickupAddress(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-500 font-mono">
+                    <div>Lat: {newPickupLat}</div>
+                    <div>Lng: {newPickupLng}</div>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                      Hora Sugerida de Recogida:
+                    </label>
+                    <input
+                      type="text"
+                      value={newPickupTime}
+                      onChange={(e) => setNewPickupTime(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 space-y-3">
+                  <div className="font-extrabold text-emerald-900 flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-emerald-600" />
+                    Punto de Entrega (Destino)
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Dirección de Entrega *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newDropoffAddress}
+                      onChange={(e) => setNewDropoffAddress(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-500 font-mono">
+                    <div>Lat: {newDropoffLat}</div>
+                    <div>Lng: {newDropoffLng}</div>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                      Hora Sugerida de Entrega:
+                    </label>
+                    <input
+                      type="text"
+                      value={newDeliveryTime}
+                      onChange={(e) => setNewDeliveryTime(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Indicaciones para el Repartidor */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Notas de Entrega para el Conductor
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: Tocar timbre 2B, paquete frágil con alimentos calientes."
+                  value={newPackageNotes}
+                  onChange={(e) => setNewPackageNotes(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-medium"
+                />
+              </div>
+
+              {/* Resumen de Métricas Calculadas en Tiempo Real */}
+              <div className="p-4 bg-slate-900 text-white rounded-2xl grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div className="p-2">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Distancia Estimada</div>
+                  <div className="text-base font-black text-emerald-400 mt-0.5">{calculatedMetrics.distanceKm} km</div>
+                </div>
+                <div className="p-2 border-l border-slate-800">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Tiempo de Viaje</div>
+                  <div className="text-base font-black text-white mt-0.5">~{calculatedMetrics.durationMinutes} min</div>
+                </div>
+                <div className="p-2 border-l border-slate-800">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Tarifa al Cliente</div>
+                  <div className="text-base font-black text-indigo-400 mt-0.5">Bs. {calculatedMetrics.price.toFixed(2)}</div>
+                </div>
+                <div className="p-2 border-l border-slate-800">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Ganancia Driver (80%)</div>
+                  <div className="text-base font-black text-emerald-400 mt-0.5">Bs. {calculatedMetrics.driverPayout.toFixed(2)}</div>
+                </div>
+              </div>
+
+              {/* Botones de Acción */}
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingOrder}
+                  className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                >
+                  {isCreatingOrder ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <PlusCircle className="w-4 h-4" />
+                      <span>Crear Despacho y Activar Radar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

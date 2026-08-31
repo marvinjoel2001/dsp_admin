@@ -116,11 +116,17 @@ export const PublicTracking: React.FC = () => {
       const data = await api.get(`/orders/track/${token}`);
       setOrder(data);
       if (data.driver?.currentLat && data.driver?.currentLng) {
-        setDriverLocation({
-          lat: data.driver.currentLat,
-          lng: data.driver.currentLng,
-          heading: 0,
-          speed: 0,
+        setDriverLocation((prev) => {
+          // Si no había ubicación o cambió, actualizar
+          if (!prev || prev.lat !== data.driver.currentLat || prev.lng !== data.driver.currentLng) {
+            return {
+              lat: Number(data.driver.currentLat),
+              lng: Number(data.driver.currentLng),
+              heading: prev?.heading || 0,
+              speed: prev?.speed || 0,
+            };
+          }
+          return prev;
         });
       }
       setError(null);
@@ -134,7 +140,7 @@ export const PublicTracking: React.FC = () => {
 
   useEffect(() => {
     loadTrackingData();
-    const interval = setInterval(loadTrackingData, 12000); // Polling secundario
+    const interval = setInterval(loadTrackingData, 5000); // Polling cada 5s para precisión total
     return () => clearInterval(interval);
   }, [token]);
 
