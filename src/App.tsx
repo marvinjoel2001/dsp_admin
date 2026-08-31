@@ -15,6 +15,7 @@ import { TestingLab } from './pages/TestingLab';
 import { MerchantSettlements } from './pages/MerchantSettlements';
 import { DriverPayouts } from './pages/DriverPayouts';
 import { DspPartners } from './pages/DspPartners';
+import { PricingSettings } from './pages/PricingSettings';
 import { PublicTracking } from './pages/PublicTracking';
 import { Login } from './pages/Login';
 
@@ -36,6 +37,7 @@ const MainLayout: React.FC = () => {
         <main className="flex-1 overflow-y-auto">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/pricing" element={<PricingSettings />} />
             <Route path="/tenants" element={<Tenants />} />
             <Route path="/dsp-partners" element={<DspPartners />} />
             <Route path="/merchant-settlements" element={<MerchantSettlements />} />

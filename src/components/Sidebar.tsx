@@ -12,6 +12,7 @@ import {
   FlaskConical,
   Receipt,
   Wallet,
+  Coins,
   ShieldCheck,
   BookOpen,
   ExternalLink,
@@ -26,6 +27,7 @@ export const Sidebar: React.FC = () => {
 
   const superAdminNavItems = [
     { label: 'Panel General', to: '/', icon: LayoutDashboard },
+    { label: 'Configuración de Tarifas', to: '/pricing', icon: Coins },
     { label: 'Tiendas y Claves API', to: '/tenants', icon: Store },
     { label: 'Asociaciones DSP / Motos', to: '/dsp-partners', icon: ShieldCheck },
     { label: 'Cobranza a Comercios', to: '/merchant-settlements', icon: Receipt },
@@ -41,6 +43,7 @@ export const Sidebar: React.FC = () => {
 
   const dspExternalNavItems = [
     { label: 'Panel General', to: '/', icon: LayoutDashboard },
+    { label: 'Mis Tarifas por Tramo', to: '/pricing', icon: Coins },
     { label: 'Órdenes Delegadas', to: '/orders', icon: Package },
     { label: 'Mis Motorizados', to: '/drivers', icon: Bike },
     { label: 'Mapa de Mi Flota', to: '/live-map', icon: MapPin },
