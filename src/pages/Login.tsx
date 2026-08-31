@@ -55,26 +55,26 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-between p-4 sm:p-6 lg:p-10 relative overflow-hidden font-sans select-none bg-slate-50">
-      {/* Background Image — Centered Character Artwork */}
+    <div className="min-h-screen w-full flex items-center justify-center p-3.5 sm:p-6 lg:p-10 py-6 sm:py-10 relative overflow-x-hidden overflow-y-auto font-sans select-none bg-slate-50">
+      {/* Background Image — Responsive Cover */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-100 contrast-100"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat filter brightness-100 contrast-100"
         style={{
           backgroundImage: `url('/images/background-login.jpg')`,
         }}
       />
 
       {/* Gentle transparent wash */}
-      <div className="absolute inset-0 bg-white/5 backdrop-blur-[0.5px]" />
+      <div className="fixed inset-0 bg-white/5 backdrop-blur-[0.5px]" />
       
-      {/* Soft Ambient Halo on the right side */}
-      <div className="absolute top-1/2 -right-10 -translate-y-1/2 w-[480px] h-[580px] bg-emerald-300/20 rounded-[3rem] blur-3xl pointer-events-none" />
+      {/* Soft Ambient Halo on the right side on desktop */}
+      <div className="fixed top-1/2 -right-10 -translate-y-1/2 w-[480px] h-[580px] bg-emerald-300/20 rounded-[3rem] blur-3xl pointer-events-none hidden lg:block" />
 
-      {/* Main Responsive Container: Left Hero / Center Clear / Right Login */}
-      <div className="w-full max-w-[1400px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
+      {/* Main Responsive Layout */}
+      <div className="w-full max-w-[1380px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8 relative z-10 my-auto">
         
-        {/* ================= LEFT SIDE: Compact Left-Aligned Collage ================= */}
-        <div className="hidden lg:flex flex-col justify-center max-w-[420px] space-y-4 animate-in fade-in slide-in-from-left-6 duration-700">
+        {/* ================= LEFT SIDE: Desktop Editorial Collage (Hidden on mobile for clarity) ================= */}
+        <div className="hidden lg:flex flex-col justify-center max-w-[400px] xl:max-w-[430px] space-y-4 animate-in fade-in slide-in-from-left-6 duration-700">
           
           {/* Sticker 1: Top Tag */}
           <div className="inline-flex items-center gap-2 self-start bg-white/90 backdrop-blur-md px-3.5 py-1 rounded-2xl border-2 border-emerald-400/60 shadow-[0_6px_16px_rgba(16,185,129,0.15)] -rotate-1 hover:rotate-0 transition-transform">
@@ -166,9 +166,9 @@ export const Login: React.FC = () => {
           </div>
         </div>
 
-        {/* ================= RIGHT SIDE: Compact Glassmorphic Login Card ================= */}
-        <div className="w-full lg:w-auto flex justify-center lg:justify-end">
-          <div className="w-full max-w-[380px] relative z-10 animate-in fade-in zoom-in-95 duration-400 pt-5">
+        {/* ================= RIGHT SIDE: Mobile & Desktop Responsive Login Card ================= */}
+        <div className="w-full lg:w-auto flex justify-center lg:justify-end mx-auto lg:mx-0">
+          <div className="w-full max-w-[360px] sm:max-w-[380px] relative z-10 animate-in fade-in zoom-in-95 duration-400 pt-5">
             
             {/* Floating Badge with Mascot */}
             <div className="flex justify-center -mb-6 relative z-20">
@@ -187,18 +187,18 @@ export const Login: React.FC = () => {
               </div>
             </div>
 
-            {/* Card Body — Ultra Transparent Glass */}
-            <div className="bg-white/45 hover:bg-white/55 transition-all duration-300 backdrop-blur-md rounded-[2rem] p-5 sm:p-6 pt-8 border-2 border-white/80 shadow-[0_20px_45px_rgba(0,0,0,0.06),inset_0_1px_3px_rgba(255,255,255,0.9)] relative overflow-hidden">
+            {/* Card Body — Ultra Transparent Glass with Clean Spacing on Mobile */}
+            <div className="bg-white/45 hover:bg-white/55 transition-all duration-300 backdrop-blur-md rounded-[2rem] p-4.5 sm:p-6 pt-8 border-2 border-white/80 shadow-[0_20px_45px_rgba(0,0,0,0.06),inset_0_1px_3px_rgba(255,255,255,0.9)] relative overflow-hidden">
               
               {/* Brand Header */}
-              <div className="text-center mb-3.5">
-                <h1 className="text-xl font-black text-slate-900 tracking-tight">
+              <div className="text-center mb-3">
+                <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
                   Chiringuito DSP
                 </h1>
-                <p className="text-xs font-extrabold text-slate-800 mt-0.5 tracking-wide">
+                <p className="text-[11px] sm:text-xs font-extrabold text-slate-800 mt-0.5 tracking-wide">
                   Centro de Operaciones
                 </p>
-                <p className="text-[11px] font-semibold text-slate-600 mt-0.5">
+                <p className="text-[10px] sm:text-[11px] font-semibold text-slate-600 mt-0.5">
                   Inicia sesión para continuar
                 </p>
               </div>
@@ -224,7 +224,7 @@ export const Login: React.FC = () => {
                     value={usernameOrEmail}
                     onChange={(e) => setUsernameOrEmail(e.target.value)}
                     placeholder="admin, motos@dsp.com o correo"
-                    className="w-full bg-white/80 hover:bg-white/95 focus:bg-white backdrop-blur-sm border-2 border-emerald-400/70 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-300/40 rounded-xl pl-9 pr-4 py-2 text-xs font-extrabold text-slate-950 placeholder-slate-500 shadow-xs transition-all focus:outline-none"
+                    className="w-full bg-white/80 hover:bg-white/95 focus:bg-white backdrop-blur-sm border-2 border-emerald-400/70 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-300/40 rounded-xl pl-9 pr-4 py-2.5 sm:py-2 text-xs font-extrabold text-slate-950 placeholder-slate-500 shadow-xs transition-all focus:outline-none"
                     disabled={isLoading}
                     autoComplete="username"
                   />
@@ -241,7 +241,7 @@ export const Login: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-white/80 hover:bg-white/95 focus:bg-white backdrop-blur-sm border-2 border-emerald-400/70 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-300/40 rounded-xl pl-9 pr-9 py-2 text-xs font-extrabold text-slate-950 placeholder-slate-500 shadow-xs transition-all focus:outline-none"
+                    className="w-full bg-white/80 hover:bg-white/95 focus:bg-white backdrop-blur-sm border-2 border-emerald-400/70 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-300/40 rounded-xl pl-9 pr-9 py-2.5 sm:py-2 text-xs font-extrabold text-slate-950 placeholder-slate-500 shadow-xs transition-all focus:outline-none"
                     disabled={isLoading}
                     autoComplete="current-password"
                   />
@@ -270,7 +270,7 @@ export const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleQuickFill('admin', 'admin')}
-                    className="text-slate-700 hover:text-emerald-800 font-extrabold transition-colors cursor-pointer"
+                    className="text-slate-700 hover:text-emerald-800 font-extrabold transition-colors cursor-pointer text-[10px] sm:text-[11px]"
                   >
                     ¿Olvidaste tu contraseña?
                   </button>
@@ -280,7 +280,7 @@ export const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full mt-0.5 py-2.5 px-4 rounded-xl text-xs font-black text-slate-950 bg-[#4ade80] hover:bg-[#22c55e] border border-[#22c55e] shadow-[0_6px_18px_rgba(74,222,128,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                  className="w-full mt-0.5 py-2.5 sm:py-2.5 px-4 rounded-xl text-xs font-black text-slate-950 bg-[#4ade80] hover:bg-[#22c55e] border border-[#22c55e] shadow-[0_6px_18px_rgba(74,222,128,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 min-h-[42px]"
                 >
                   {isLoading ? (
                     <>
@@ -294,7 +294,7 @@ export const Login: React.FC = () => {
               </form>
 
               {/* Divider */}
-              <div className="relative my-3">
+              <div className="relative my-2.5 sm:my-3">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-400/30" />
                 </div>
@@ -313,7 +313,7 @@ export const Login: React.FC = () => {
                     <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800">
                       <Crown className="w-3 h-3 text-emerald-700" />
                     </div>
-                    <div className="text-[11px] font-black text-slate-900">
+                    <div className="text-[10px] sm:text-[11px] font-black text-slate-900">
                       <span>Súper Admin: </span>
                       <span className="text-slate-700 font-bold">admin</span>
                     </div>
@@ -322,7 +322,7 @@ export const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleQuickFill('admin', 'admin', true)}
-                    className="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-[#4ade80] hover:bg-[#22c55e] text-slate-950 border border-[#22c55e] shadow-xs transition-all cursor-pointer active:scale-95"
+                    className="px-2.5 py-1 sm:py-0.5 rounded-lg text-[10px] font-black bg-[#4ade80] hover:bg-[#22c55e] text-slate-950 border border-[#22c55e] shadow-xs transition-all cursor-pointer active:scale-95"
                   >
                     Cargar
                   </button>
@@ -334,7 +334,7 @@ export const Login: React.FC = () => {
                     <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800">
                       <Building2 className="w-3 h-3 text-emerald-700" />
                     </div>
-                    <div className="text-[11px] font-black text-slate-900">
+                    <div className="text-[10px] sm:text-[11px] font-black text-slate-900">
                       <span>DSP: </span>
                       <span className="text-slate-700 font-bold">motos@dsp.com</span>
                     </div>
@@ -343,7 +343,7 @@ export const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleQuickFill('motos@dsp.com', 'admin123', true)}
-                    className="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-[#4ade80] hover:bg-[#22c55e] text-slate-950 border border-[#22c55e] shadow-xs transition-all cursor-pointer active:scale-95"
+                    className="px-2.5 py-1 sm:py-0.5 rounded-lg text-[10px] font-black bg-[#4ade80] hover:bg-[#22c55e] text-slate-950 border border-[#22c55e] shadow-xs transition-all cursor-pointer active:scale-95"
                   >
                     Cargar
                   </button>
@@ -355,7 +355,7 @@ export const Login: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleQuickFill('admin', 'admin', true)}
-                  className="w-full py-1.5 px-3 rounded-xl text-[10px] font-black text-slate-800 bg-white/80 hover:bg-white backdrop-blur-sm border-2 border-slate-300 hover:border-emerald-400 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+                  className="w-full py-1.5 sm:py-1.5 px-3 rounded-xl text-[10px] font-black text-slate-800 bg-white/80 hover:bg-white backdrop-blur-sm border-2 border-slate-300 hover:border-emerald-400 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 min-h-[34px]"
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
                   <span>SSO / Acceso Directo</span>
