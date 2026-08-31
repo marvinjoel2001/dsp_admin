@@ -1,68 +1,152 @@
 import React, { useState } from 'react';
-import { ShieldCheck, User, Lock, Eye, EyeOff, Shield, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import {
+  ShieldCheck,
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  Shield,
+  Loader2,
+  AlertCircle,
+  Sparkles,
+  Bike,
+  Building2,
+  Crown,
+  ArrowRight,
+  CheckCircle2,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
+type RoleTab = 'admin' | 'dsp' | 'driver';
 
 export const Login: React.FC = () => {
   const { login, isLoading } = useAuth();
-  const [usernameOrEmail, setUsernameOrEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState<RoleTab>('admin');
+  const [usernameOrEmail, setUsernameOrEmail] = useState('admin');
+  const [password, setPassword] = useState('admin');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const selectRole = (role: RoleTab) => {
+    setSelectedRole(role);
+    setErrorMessage(null);
+    if (role === 'admin') {
+      setUsernameOrEmail('admin');
+      setPassword('admin');
+    } else if (role === 'dsp') {
+      setUsernameOrEmail('motos@dsp.com');
+      setPassword('admin123');
+    } else {
+      setUsernameOrEmail('driver@dsp.com');
+      setPassword('admin123');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
     if (!usernameOrEmail.trim() || !password) {
-      setErrorMessage('Por favor ingresa tu usuario y contraseña.');
+      setErrorMessage('Por favor ingresa tu usuario/correo y contraseña.');
       return;
     }
 
     const res = await login(usernameOrEmail.trim(), password);
     if (!res.success) {
-      setErrorMessage(res.error || 'Credenciales incorrectas');
+      setErrorMessage(res.error || 'Credenciales incorrectas. Verifica tus datos.');
     }
   };
 
-  const handleQuickFill = (user: string, pass: string) => {
-    setUsernameOrEmail(user);
-    setPassword(pass);
-    setErrorMessage(null);
-  };
-
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/20 p-4 relative overflow-hidden">
-      {/* Background Decorative Blurs */}
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-200/40 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-slate-100/50 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#0B0F19] p-4 sm:p-6 relative overflow-hidden font-sans">
+      {/* Dynamic Background Glows & Grid */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.18),rgba(255,255,255,0))]" />
+      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+      
+      {/* Subtle Grid overlay */}
+      <div 
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
+          backgroundSize: '40px 40px'
+        }}
+      />
 
       {/* Main Login Card */}
-      <div className="w-full max-w-[420px] bg-white/90 backdrop-blur-2xl rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(79,70,229,0.08)] border border-slate-100 relative z-10 animate-in fade-in zoom-in-95 duration-300">
+      <div className="w-full max-w-[460px] bg-[#111827]/90 backdrop-blur-2xl rounded-3xl p-7 sm:p-9 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] border border-slate-800/80 relative z-10 animate-in fade-in zoom-in-95 duration-300">
         
-        {/* Logo & Header */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-16 h-16 rounded-3xl bg-white p-2 flex items-center justify-center shadow-lg shadow-slate-200/80 border border-slate-100 mb-4 group transition-transform hover:scale-105">
-            <img src="/images/logo.png" alt="Chiringuito DSP" className="w-full h-full object-contain" />
+        {/* Brand Header */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="relative mb-3.5 group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-indigo-500 rounded-2xl blur-sm opacity-70 group-hover:opacity-100 transition duration-300" />
+            <div className="relative w-14 h-14 rounded-2xl bg-[#0F172A] p-2.5 flex items-center justify-center border border-slate-700/60 shadow-xl">
+              <ShieldCheck className="w-8 h-8 text-cyan-400" />
+            </div>
           </div>
           
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 mb-1">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] font-bold tracking-wide uppercase mb-2">
+            <Sparkles className="w-3 h-3 text-cyan-400" />
+            <span>Open DSP Platform</span>
+          </div>
+
+          <h1 className="text-2xl font-black tracking-tight text-white">
             Chiringuito DSP
           </h1>
-          <p className="text-sm font-semibold text-slate-600 mb-1">
-            Centro de Operaciones
+          <p className="text-xs font-medium text-slate-400 mt-0.5">
+            Centro de Despacho, Flotas y Tarifas Dinámicas
           </p>
-          <p className="text-xs text-slate-400 font-medium">
-            Inicia sesión para continuar
-          </p>
+        </div>
+
+        {/* Role Selector Tabs (1-Click Switch) */}
+        <div className="mb-6 p-1 bg-slate-900/90 rounded-2xl border border-slate-800 flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => selectRole('admin')}
+            className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              selectedRole === 'admin'
+                ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+            }`}
+          >
+            <Crown className="w-3.5 h-3.5 text-amber-400" />
+            <span>Super Admin</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => selectRole('dsp')}
+            className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              selectedRole === 'dsp'
+                ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white shadow-md shadow-cyan-600/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+            }`}
+          >
+            <Building2 className="w-3.5 h-3.5 text-cyan-300" />
+            <span>Asociación DSP</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => selectRole('driver')}
+            className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              selectedRole === 'driver'
+                ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-md shadow-emerald-600/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+            }`}
+          >
+            <Bike className="w-3.5 h-3.5 text-emerald-300" />
+            <span>Repartidor</span>
+          </button>
         </div>
 
         {/* Error Alert */}
         {errorMessage && (
-          <div className="mb-6 p-3.5 bg-red-50/90 border border-red-200/80 rounded-2xl flex items-start gap-2.5 text-xs text-red-700 animate-shake">
-            <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-            <div className="flex-1 font-medium">{errorMessage}</div>
+          <div className="mb-5 p-3 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-start gap-2.5 text-xs text-red-300 animate-in fade-in duration-200">
+            <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+            <div className="flex-1 font-medium leading-relaxed">{errorMessage}</div>
           </div>
         )}
 
@@ -70,37 +154,53 @@ export const Login: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Username / Email Input */}
           <div>
+            <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5 ml-1">
+              Usuario o Correo
+            </label>
             <div className="relative flex items-center">
-              <User className="w-4 h-4 absolute left-4 text-slate-400 pointer-events-none" />
+              <User className="w-4 h-4 absolute left-4 text-slate-500 pointer-events-none" />
               <input
                 id="username"
                 type="text"
                 value={usernameOrEmail}
                 onChange={(e) => setUsernameOrEmail(e.target.value)}
-                placeholder="Usuario o correo electrónico"
-                className="w-full bg-slate-50/80 border border-slate-200/90 rounded-2xl pl-11 pr-4 py-3.5 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                placeholder="admin, motos@dsp.com o correo"
+                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-2xl pl-11 pr-4 py-3 text-xs font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
                 disabled={isLoading}
+                autoFocus
               />
             </div>
           </div>
 
           {/* Password Input */}
           <div>
+            <div className="flex items-center justify-between mb-1.5 ml-1 mr-1">
+              <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                Contraseña
+              </label>
+              <button
+                type="button"
+                onClick={() => setPassword('admin123')}
+                className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer"
+              >
+                Autocompletar
+              </button>
+            </div>
             <div className="relative flex items-center">
-              <Lock className="w-4 h-4 absolute left-4 text-slate-400 pointer-events-none" />
+              <Lock className="w-4 h-4 absolute left-4 text-slate-500 pointer-events-none" />
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Contraseña"
-                className="w-full bg-slate-50/80 border border-slate-200/90 rounded-2xl pl-11 pr-11 py-3.5 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                placeholder="••••••••"
+                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-2xl pl-11 pr-11 py-3 text-xs font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
                 disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 p-1 text-slate-400 hover:text-slate-600 transition-colors"
+                className="absolute right-3.5 p-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -108,107 +208,86 @@ export const Login: React.FC = () => {
             </div>
           </div>
 
-          {/* Remember me & Forgot Password */}
-          <div className="flex items-center justify-between pt-1 pb-1">
+          {/* Remember me & Status */}
+          <div className="flex items-center justify-between pt-1">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 transition-colors"
+                className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-cyan-500/20 focus:ring-offset-0 transition-colors"
               />
-              <span className="text-xs font-medium text-slate-600">Recordarme</span>
+              <span className="text-xs font-medium text-slate-400">Recordar sesión</span>
             </label>
 
-            <button
-              type="button"
-              onClick={() => handleQuickFill('admin', 'admin')}
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors hover:underline"
-            >
-              ¿Olvidaste tu contraseña?
-            </button>
+            <span className="text-[11px] font-medium text-emerald-400 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" />
+              <span>Servidor Activo</span>
+            </span>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold py-3.5 px-4 rounded-2xl text-xs shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/35 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer"
+            className="w-full mt-2 bg-gradient-to-r from-cyan-500 via-indigo-600 to-indigo-700 hover:from-cyan-400 hover:via-indigo-500 hover:to-indigo-600 text-white font-extrabold py-3.5 px-4 rounded-2xl text-xs shadow-lg shadow-indigo-500/25 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Iniciando sesión...</span>
+                <span>Verificando credenciales...</span>
               </>
             ) : (
-              <span>Iniciar Sesión</span>
+              <>
+                <span>Ingresar al Panel de Control</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
             )}
           </button>
         </form>
 
-        {/* Divider */}
-        <div className="relative my-6 flex items-center justify-center">
-          <div className="border-t border-slate-200/80 w-full" />
-          <span className="bg-white px-3 text-[11px] font-medium text-slate-400 absolute">
-            o continúa con
-          </span>
-        </div>
-
-        {/* SSO Button */}
-        <button
-          type="button"
-          onClick={() => handleQuickFill('admin', 'admin')}
-          className="w-full bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 font-bold py-3 px-4 rounded-2xl text-xs transition-all flex items-center justify-center gap-2 shadow-xs hover:border-slate-300"
-        >
-          <Shield className="w-4 h-4 text-indigo-600" />
-          <span>SSO / Single Sign-On</span>
-        </button>
-
-        {/* Quick Access Credential Helper Pills */}
-        <div className="mt-5 space-y-2">
-          <div className="p-2.5 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-              <span className="text-[11px] font-medium text-indigo-900">
-                Super Admin: <strong className="font-bold">admin / admin</strong>
-              </span>
-            </div>
+        {/* Quick Demo Access Badges */}
+        <div className="mt-6 pt-5 border-t border-slate-800/80">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5 text-center">
+            Accesos Rápidos Demo
+          </p>
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => handleQuickFill('admin', 'admin')}
-              className="text-[10px] font-bold uppercase tracking-wider bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded-lg transition-all"
+              onClick={() => {
+                selectRole('admin');
+                handleSubmit({ preventDefault: () => {} } as any);
+              }}
+              className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all text-left group cursor-pointer"
             >
-              Llenar
+              <div className="text-[11px] font-bold text-white flex items-center justify-between">
+                <span>Super Admin</span>
+                <Crown className="w-3 h-3 text-amber-400 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="text-[10px] text-slate-400 mt-0.5">admin / admin</div>
             </button>
-          </div>
 
-          <div className="p-2.5 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span className="text-[11px] font-medium text-emerald-900">
-                DSP / Motos: <strong className="font-bold">motos@dsp.com / admin123</strong>
-              </span>
-            </div>
             <button
               type="button"
-              onClick={() => handleQuickFill('motos@dsp.com', 'admin123')}
-              className="text-[10px] font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded-lg transition-all"
+              onClick={() => {
+                selectRole('dsp');
+                handleSubmit({ preventDefault: () => {} } as any);
+              }}
+              className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all text-left group cursor-pointer"
             >
-              Llenar
+              <div className="text-[11px] font-bold text-white flex items-center justify-between">
+                <span>Asoc. Motos</span>
+                <Building2 className="w-3 h-3 text-cyan-400 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="text-[10px] text-slate-400 mt-0.5">motos@dsp.com</div>
             </button>
           </div>
         </div>
 
-        {/* Footer Link */}
-        <div className="text-center mt-6">
-          <p className="text-xs text-slate-400 font-medium">
-            ¿No tienes acceso?{' '}
-            <a
-              href="mailto:soporte@chiringuitodsp.com"
-              className="font-bold text-indigo-600 hover:text-indigo-700 transition-colors hover:underline"
-            >
-              Contacta al administrador
-            </a>
+        {/* Footer */}
+        <div className="text-center mt-5">
+          <p className="text-[11px] text-slate-500 font-medium">
+            Chiringuito DSP v1.0 • Despacho Inteligente de Última Milla
           </p>
         </div>
       </div>
