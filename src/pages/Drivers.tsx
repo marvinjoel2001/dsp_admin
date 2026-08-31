@@ -21,6 +21,10 @@ import {
   Wallet,
   RefreshCw,
   Plus,
+  Edit2,
+  Trash2,
+  Ban,
+  UserCheck,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -57,6 +61,21 @@ export const Drivers: React.FC = () => {
   const [adjustDescription, setAdjustDescription] = useState('');
   const [isSubmittingAdjust, setIsSubmittingAdjust] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Modal Edición Conductor
+  const [editDriver, setEditDriver] = useState<any | null>(null);
+  const [isEditingSubmitting, setIsEditingSubmitting] = useState(false);
+  const [editForm, setEditForm] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+    ciNumber: '',
+    homeAddress: '',
+    vehicleType: 'MOTORCYCLE',
+    vehiclePlate: '',
+    dspPartnerId: '',
+    password: '',
+  });
 
   const fetchDrivers = () => {
     setIsLoading(true);
@@ -166,6 +185,74 @@ export const Drivers: React.FC = () => {
       alert(`Error al actualizar estado: ${err.message}`);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleToggleActive = async (driver: any) => {
+    const action = driver.isActive ? 'bloquear y suspender' : 'desbloquear y reactivar';
+    if (!window.confirm(`¿Estás seguro de que deseas ${action} al conductor ${driver.fullName}?`)) return;
+    try {
+      await api.patch(`/drivers/${driver.id}/toggle-active`);
+      alert(`✅ Conductor ${driver.fullName} ${driver.isActive ? 'bloqueado' : 'desbloqueado'} con éxito.`);
+      fetchDrivers();
+    } catch (err: any) {
+      alert(`Error al cambiar estado de cuenta: ${err.message}`);
+    }
+  };
+
+  const handleDeleteDriver = async (driver: any) => {
+    if (!window.confirm(`⚠️ ¡ATENCIÓN! ¿Estás seguro de eliminar definitivamente a ${driver.fullName}? Esta acción no se puede deshacer.`)) return;
+    try {
+      await api.delete(`/drivers/${driver.id}`);
+      alert(`✅ Conductor ${driver.fullName} eliminado exitosamente.`);
+      fetchDrivers();
+      if (selectedDriverForDocs?.id === driver.id) setSelectedDriverForDocs(null);
+    } catch (err: any) {
+      alert(`Error al eliminar conductor: ${err.message}`);
+    }
+  };
+
+  const handleOpenEditModal = (driver: any) => {
+    setEditDriver(driver);
+    setEditForm({
+      fullName: driver.fullName || '',
+      phone: driver.phone || '',
+      email: driver.email || '',
+      ciNumber: driver.ciNumber || '',
+      homeAddress: driver.homeAddress || '',
+      vehicleType: driver.vehicleType || 'MOTORCYCLE',
+      vehiclePlate: driver.vehiclePlate || '',
+      dspPartnerId: driver.dspPartnerId || '',
+      password: '',
+    });
+  };
+
+  const handleUpdateDriver = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editDriver) return;
+    setIsEditingSubmitting(true);
+    try {
+      const payload: any = {
+        fullName: editForm.fullName,
+        phone: editForm.phone,
+        email: editForm.email,
+        ciNumber: editForm.ciNumber,
+        homeAddress: editForm.homeAddress,
+        vehicleType: editForm.vehicleType,
+        vehiclePlate: editForm.vehiclePlate,
+        dspPartnerId: editForm.dspPartnerId || null,
+      };
+      if (editForm.password) {
+        payload.password = editForm.password;
+      }
+      await api.put(`/drivers/${editDriver.id}`, payload);
+      alert(`✅ Conductor ${editForm.fullName} actualizado exitosamente.`);
+      setEditDriver(null);
+      fetchDrivers();
+    } catch (err: any) {
+      alert(`Error al actualizar conductor: ${err.message}`);
+    } finally {
+      setIsEditingSubmitting(false);
     }
   };
 
@@ -429,10 +516,55 @@ export const Drivers: React.FC = () => {
 
                 <button
                   onClick={() => handleToggleOnline(d.id, d.isOnline)}
-                  className="text-xs font-bold text-slate-700 hover:text-emerald-700 flex items-center gap-1.5 transition-colors"
+                  className="text-xs font-bold text-slate-700 hover:text-emerald-700 flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   {d.isOnline ? <ToggleRight className="w-5 h-5 text-emerald-600" /> : <ToggleLeft className="w-5 h-5 text-slate-400" />}
-                  Cambiar Turno
+                  Turno
+                </button>
+              </div>
+
+              {/* Barra de Gestión Administrativa (CRUD) */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleOpenEditModal(d)}
+                  className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  title="Editar datos del conductor"
+                >
+                  <Edit2 className="w-3.5 h-3.5 text-slate-600" />
+                  Editar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleToggleActive(d)}
+                  className={`flex-1 py-1.5 px-2 font-bold text-[11px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                    d.isActive
+                      ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
+                  }`}
+                  title={d.isActive ? 'Bloquear y suspender acceso' : 'Desbloquear y reactivar cuenta'}
+                >
+                  {d.isActive ? (
+                    <>
+                      <Ban className="w-3.5 h-3.5 text-amber-600" />
+                      Bloquear
+                    </>
+                  ) : (
+                    <>
+                      <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      Reactivar
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDeleteDriver(d)}
+                  className="py-1.5 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] rounded-lg border border-rose-200 transition-colors flex items-center justify-center cursor-pointer"
+                  title="Eliminar conductor permanentemente"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-600" />
                 </button>
               </div>
             </div>
@@ -482,22 +614,42 @@ export const Drivers: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    disabled={isUpdating}
-                    onClick={() => handleVerifyDriver(selectedDriverForDocs.id, 'rejected')}
-                    className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center gap-1.5 transition-all"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Rechazar
-                  </button>
-                  <button
-                    disabled={isUpdating}
-                    onClick={() => handleVerifyDriver(selectedDriverForDocs.id, 'verified')}
-                    className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Aprobar y Verificar
-                  </button>
+                  {selectedDriverForDocs.verificationStatus === 'verified' ? (
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-black text-xs flex items-center gap-1.5 border border-emerald-300">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        Conductor Aprobado
+                      </span>
+                      <button
+                        disabled={isUpdating}
+                        onClick={() => handleVerifyDriver(selectedDriverForDocs.id, 'rejected')}
+                        className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="Revocar aprobación de documentos"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        Revocar
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        disabled={isUpdating}
+                        onClick={() => handleVerifyDriver(selectedDriverForDocs.id, 'rejected')}
+                        className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <XCircle className="w-4 h-4" />
+                        Rechazar
+                      </button>
+                      <button
+                        disabled={isUpdating}
+                        onClick={() => handleVerifyDriver(selectedDriverForDocs.id, 'verified')}
+                        className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        Aprobar y Verificar
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -870,6 +1022,157 @@ export const Drivers: React.FC = () => {
                 >
                   {registerSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : null}
                   <span>Guardar y Activar Conductor</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Editar Conductor (CRUD) */}
+      {editDriver && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+              <div>
+                <h3 className="text-base font-black text-slate-900">Editar Datos del Conductor</h3>
+                <p className="text-xs text-slate-500 font-medium">Modifica los datos personales, de vehículo o credenciales</p>
+              </div>
+              <button
+                onClick={() => setEditDriver(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateDriver} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Nombre Completo *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.fullName}
+                    onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Teléfono / WhatsApp *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Correo Electrónico *</label>
+                  <input
+                    type="email"
+                    required
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Carnet de Identidad (C.I.)</label>
+                  <input
+                    type="text"
+                    value={editForm.ciNumber}
+                    onChange={(e) => setEditForm({ ...editForm, ciNumber: e.target.value })}
+                    placeholder="Ej. 8945612 SC"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Dirección de Domicilio</label>
+                <input
+                  type="text"
+                  value={editForm.homeAddress}
+                  onChange={(e) => setEditForm({ ...editForm, homeAddress: e.target.value })}
+                  placeholder="Ej. Barrio Los Olivos Calle 3 #45, Santa Cruz"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Tipo de Vehículo</label>
+                  <select
+                    value={editForm.vehicleType}
+                    onChange={(e) => setEditForm({ ...editForm, vehicleType: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                  >
+                    <option value="MOTORCYCLE">🏍️ Motocicleta</option>
+                    <option value="BICYCLE">🚲 Bicicleta</option>
+                    <option value="CAR">🚗 Automóvil</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Placa del Vehículo</label>
+                  <input
+                    type="text"
+                    value={editForm.vehiclePlate}
+                    onChange={(e) => setEditForm({ ...editForm, vehiclePlate: e.target.value.toUpperCase() })}
+                    placeholder="Ej. 6547XLU"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all uppercase"
+                  />
+                </div>
+              </div>
+
+              {user?.role === 'ADMIN' && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Asociación DSP Afiliada</label>
+                  <select
+                    value={editForm.dspPartnerId}
+                    onChange={(e) => setEditForm({ ...editForm, dspPartnerId: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                  >
+                    <option value="">🏢 Flota Directa Propia (Sin Asociación)</option>
+                    {partnersList.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        🏍️ {p.name} ({p.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Nueva Contraseña (Opcional)</label>
+                <input
+                  type="password"
+                  placeholder="Dejar en blanco para mantener la actual"
+                  value={editForm.password}
+                  onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                />
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditDriver(null)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditingSubmitting}
+                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm shadow-emerald-600/20"
+                >
+                  {isEditingSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : null}
+                  <span>Guardar Cambios</span>
                 </button>
               </div>
             </form>

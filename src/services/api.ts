@@ -67,4 +67,12 @@ export const api = {
     });
     return handleResponse(res);
   },
+
+  async delete(endpoint: string, headers: Record<string, string> = {}) {
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'DELETE',
+      headers: { ...getAuthHeaders(), ...headers },
+    });
+    return handleResponse(res);
+  },
 };

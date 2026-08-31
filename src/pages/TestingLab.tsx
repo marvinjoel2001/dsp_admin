@@ -63,6 +63,7 @@ export const TestingLab: React.FC = () => {
   // 1. Tiendas / Tenants
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [selectedTenantId, setSelectedTenantId] = useState<string>('');
+  const [customApiKey, setCustomApiKey] = useState<string>('');
   const [isLoadingTenants, setIsLoadingTenants] = useState(false);
 
   // 2. Formulario de Creación de Orden
@@ -106,6 +107,12 @@ export const TestingLab: React.FC = () => {
         setTenants(data);
         if (data.length > 0 && !selectedTenantId) {
           setSelectedTenantId(data[0].id);
+          const savedKey = localStorage.getItem(`tenant_apikey_${data[0].id}`);
+          if (savedKey) {
+            setCustomApiKey(savedKey);
+          } else if (data[0].name?.includes('Chiringuito') || data[0].id === 'e7b92f34-1182-4bc9-93e1-23d9b04f7a11') {
+            setCustomApiKey('dsp_live_chiringuito123');
+          }
         }
       }
     } catch (err) {
@@ -121,6 +128,21 @@ export const TestingLab: React.FC = () => {
 
   const selectedTenant = tenants.find((t) => t.id === selectedTenantId);
 
+  const handleSelectTenant = (tenantId: string) => {
+    setSelectedTenantId(tenantId);
+    const target = tenants.find((t) => t.id === tenantId);
+    const savedKey = localStorage.getItem(`tenant_apikey_${tenantId}`);
+    if (savedKey) {
+      setCustomApiKey(savedKey);
+    } else if (target?.name?.includes('Chiringuito') || tenantId === 'e7b92f34-1182-4bc9-93e1-23d9b04f7a11') {
+      setCustomApiKey('dsp_live_chiringuito123');
+    } else if (target?.apiKeyRaw) {
+      setCustomApiKey(target.apiKeyRaw);
+    } else {
+      setCustomApiKey('');
+    }
+  };
+
   // Crear Tienda Rápida de Prueba si la base de datos está limpia
   const handleCreateDemoTenant = async () => {
     try {
@@ -129,6 +151,10 @@ export const TestingLab: React.FC = () => {
         email: `tienda_${Date.now()}@chiringuito.com`,
         webhookUrl: 'https://webhook.site/demo-chiringuito-receiver',
       });
+      if (newTenant?.apiKeyRaw) {
+        localStorage.setItem(`tenant_apikey_${newTenant.id}`, newTenant.apiKeyRaw);
+        setCustomApiKey(newTenant.apiKeyRaw);
+      }
       await fetchTenants();
       setSelectedTenantId(newTenant.id);
       alert(`✅ Tienda creada con éxito.\nAPI Key: ${newTenant.apiKeyRaw}\nWebhook Secret: ${newTenant.webhookSecret}`);
@@ -221,7 +247,12 @@ export const TestingLab: React.FC = () => {
 
     setIsSubmittingOrder(true);
     try {
-      const apiKey = selectedTenant.apiKeyRaw || 'test-api-key';
+      const apiKey = customApiKey.trim() || selectedTenant.apiKeyRaw || (selectedTenant.name?.includes('Chiringuito') || selectedTenant.id === 'e7b92f34-1182-4bc9-93e1-23d9b04f7a11' ? 'dsp_live_chiringuito123' : '');
+      if (!apiKey) {
+        alert('Por favor ingresa la Clave API de la tienda seleccionada o crea una nueva tienda de prueba con el botón "+ Nueva".');
+        setIsSubmittingOrder(false);
+        return;
+      }
       const orderPayload = {
         pickupAddress,
         pickupLat,
@@ -400,7 +431,7 @@ export const TestingLab: React.FC = () => {
               <div className="flex gap-2">
                 <select
                   value={selectedTenantId}
-                  onChange={(e) => setSelectedTenantId(e.target.value)}
+                  onChange={(e) => handleSelectTenant(e.target.value)}
                   className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                 >
                   {tenants.map((t) => (
@@ -412,11 +443,31 @@ export const TestingLab: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleCreateDemoTenant}
-                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl whitespace-nowrap"
+                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl whitespace-nowrap cursor-pointer"
                 >
                   + Nueva
                 </button>
               </div>
+
+              {/* Input Clave API */}
+              <div className="mt-2.5">
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                  Clave API de Integración (x-api-key) *
+                </label>
+                <input
+                  type="text"
+                  value={customApiKey}
+                  onChange={(e) => {
+                    setCustomApiKey(e.target.value);
+                    if (selectedTenantId) {
+                      localStorage.setItem(`tenant_apikey_${selectedTenantId}`, e.target.value);
+                    }
+                  }}
+                  placeholder="dsp_live_..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
+
               {selectedTenant && (
                 <div className="mt-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200/60 text-[11px] text-slate-600 space-y-1 font-mono">
                   <div className="flex justify-between items-center">

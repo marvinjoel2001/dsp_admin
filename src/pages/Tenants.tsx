@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Store, Key, Copy, Check, Plus, RefreshCw, Globe, Shield } from 'lucide-react';
+import { Store, Key, Copy, Check, Plus, RefreshCw, Globe, Shield, Edit2, Trash2, Ban, CheckCircle2, X } from 'lucide-react';
 import { api } from '../services/api';
 
 export const Tenants: React.FC = () => {
@@ -11,6 +11,13 @@ export const Tenants: React.FC = () => {
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Modal Editar Tienda
+  const [editTenant, setEditTenant] = useState<any | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editWebhookUrl, setEditWebhookUrl] = useState('');
+  const [isEditingSubmitting, setIsEditingSubmitting] = useState(false);
 
   const fetchTenants = () => {
     setIsLoading(true);
@@ -35,12 +42,65 @@ export const Tenants: React.FC = () => {
     try {
       const res = await api.post('/tenants', { name, email, webhookUrl });
       setCreatedKey(res.apiKeyRaw);
+      if (res?.id && res?.apiKeyRaw) {
+        localStorage.setItem(`tenant_apikey_${res.id}`, res.apiKeyRaw);
+      }
       fetchTenants();
       setName('');
       setEmail('');
       setWebhookUrl('');
     } catch (err: any) {
       alert(`Error al registrar tienda: ${err.message}`);
+    }
+  };
+
+  const handleToggleStatus = async (tenant: any) => {
+    const action = tenant.isActive ? 'desactivar y bloquear el acceso API de' : 'activar el acceso API de';
+    if (!confirm(`¿Estás seguro de ${action} "${tenant.name}"?`)) return;
+    try {
+      await api.patch(`/tenants/${tenant.id}/toggle-status`);
+      alert(`✅ Tienda ${tenant.name} ${tenant.isActive ? 'desactivada' : 'activada'} con éxito.`);
+      fetchTenants();
+    } catch (err: any) {
+      alert(`Error al cambiar estado: ${err.message}`);
+    }
+  };
+
+  const handleDeleteTenant = async (tenant: any) => {
+    if (!confirm(`⚠️ ¡ATENCIÓN! ¿Estás seguro de eliminar definitivamente a la tienda "${tenant.name}"? Sus claves API dejarán de funcionar de inmediato.`)) return;
+    try {
+      await api.delete(`/tenants/${tenant.id}`);
+      alert(`✅ Tienda ${tenant.name} eliminada con éxito.`);
+      fetchTenants();
+    } catch (err: any) {
+      alert(`Error al eliminar tienda: ${err.message}`);
+    }
+  };
+
+  const handleOpenEdit = (tenant: any) => {
+    setEditTenant(tenant);
+    setEditName(tenant.name || '');
+    setEditEmail(tenant.email || '');
+    setEditWebhookUrl(tenant.webhookUrl || '');
+  };
+
+  const handleUpdateTenant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTenant) return;
+    setIsEditingSubmitting(true);
+    try {
+      await api.put(`/tenants/${editTenant.id}`, {
+        name: editName,
+        email: editEmail,
+        webhookUrl: editWebhookUrl,
+      });
+      alert(`✅ Tienda ${editName} actualizada correctamente.`);
+      setEditTenant(null);
+      fetchTenants();
+    } catch (err: any) {
+      alert(`Error al actualizar tienda: ${err.message}`);
+    } finally {
+      setIsEditingSubmitting(false);
     }
   };
 
@@ -137,19 +197,49 @@ export const Tenants: React.FC = () => {
                   </span>
                 </td>
                 <td className="py-4 px-6 text-right">
-                  <button
-                    onClick={async () => {
-                      if (confirm(`¿Regenerar Clave API para ${t.name}? La clave anterior dejará de funcionar.`)) {
-                        const res = await api.post(`/tenants/${t.id}/regenerate-key`, {});
-                        setCreatedKey(res.apiKeyRaw);
-                        setIsModalOpen(true);
-                      }
-                    }}
-                    className="p-2 hover:bg-slate-100 text-slate-500 hover:text-emerald-700 rounded-lg transition-colors"
-                    title="Regenerar Clave API"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center justify-end gap-1.5">
+                    <button
+                      onClick={() => handleOpenEdit(t)}
+                      className="p-1.5 hover:bg-slate-100 text-slate-600 hover:text-slate-900 rounded-lg transition-colors cursor-pointer"
+                      title="Editar datos de la tienda"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleToggleStatus(t)}
+                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                        t.isActive
+                          ? 'hover:bg-amber-50 text-slate-400 hover:text-amber-600'
+                          : 'hover:bg-emerald-50 text-amber-600 hover:text-emerald-600'
+                      }`}
+                      title={t.isActive ? 'Bloquear y desactivar API' : 'Reactivar acceso API'}
+                    >
+                      {t.isActive ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (confirm(`¿Regenerar Clave API para ${t.name}? La clave anterior dejará de funcionar.`)) {
+                          const res = await api.post(`/tenants/${t.id}/regenerate-key`, {});
+                          setCreatedKey(res.apiKeyRaw);
+                          if (res?.apiKeyRaw) {
+                            localStorage.setItem(`tenant_apikey_${t.id}`, res.apiKeyRaw);
+                          }
+                          setIsModalOpen(true);
+                        }
+                      }}
+                      className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-emerald-700 rounded-lg transition-colors cursor-pointer"
+                      title="Regenerar Clave API"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTenant(t)}
+                      className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                      title="Eliminar tienda definitivamente"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -242,6 +332,79 @@ export const Tenants: React.FC = () => {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Editar Tienda (CRUD) */}
+      {editTenant && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass-dropdown rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900">Editar Datos de la Tienda</h3>
+                <p className="text-xs text-slate-500 font-medium">Modifica la información y endpoint de webhooks</p>
+              </div>
+              <button
+                onClick={() => setEditTenant(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateTenant} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Nombre de la Tienda *</label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Correo de Integración *</label>
+                <input
+                  type="email"
+                  required
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">URL del Endpoint de Webhook</label>
+                <input
+                  type="url"
+                  value={editWebhookUrl}
+                  onChange={(e) => setEditWebhookUrl(e.target.value)}
+                  placeholder="https://api.empresa.com/webhooks/dsp"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditTenant(null)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditingSubmitting}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  {isEditingSubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
+                  <span>Guardar Cambios</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

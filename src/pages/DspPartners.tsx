@@ -15,6 +15,8 @@ import {
   Loader2,
   DollarSign,
   RefreshCw,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -23,10 +25,24 @@ export const DspPartners: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Modal Crear/Editar
+  // Modal Crear
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
+    name: '',
+    code: '',
+    email: '',
+    password: '',
+    contactName: '',
+    contactPhone: '',
+    city: 'Santa Cruz',
+    payoutPerOrder: 5.0,
+  });
+
+  // Modal Editar Asociación
+  const [editPartner, setEditPartner] = useState<any | null>(null);
+  const [isEditingSubmitting, setIsEditingSubmitting] = useState(false);
+  const [editForm, setEditForm] = useState({
     name: '',
     code: '',
     email: '',
@@ -61,6 +77,59 @@ export const DspPartners: React.FC = () => {
       fetchPartners();
     } catch (err: any) {
       alert(`Error al cambiar estado: ${err.message}`);
+    }
+  };
+
+  const handleDeletePartner = async (partner: any) => {
+    if (!confirm(`⚠️ ¡ATENCIÓN! ¿Estás seguro de eliminar a la asociación "${partner.name}" (${partner.code})? Esta acción desvinculará sus conductores y pedidos.`)) return;
+    try {
+      await api.delete(`/dsp-partners/${partner.id}`);
+      alert(`✅ Asociación ${partner.name} eliminada con éxito.`);
+      fetchPartners();
+    } catch (err: any) {
+      alert(`Error al eliminar asociación: ${err.message}`);
+    }
+  };
+
+  const handleOpenEdit = (partner: any) => {
+    setEditPartner(partner);
+    setEditForm({
+      name: partner.name || '',
+      code: partner.code || '',
+      email: partner.email || '',
+      password: '',
+      contactName: partner.contactName || '',
+      contactPhone: partner.contactPhone || '',
+      city: partner.city || 'Santa Cruz',
+      payoutPerOrder: Number(partner.payoutPerOrder) || 5.0,
+    });
+  };
+
+  const handleUpdatePartner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editPartner) return;
+    setIsEditingSubmitting(true);
+    try {
+      const payload: any = {
+        name: editForm.name,
+        code: editForm.code,
+        email: editForm.email,
+        contactName: editForm.contactName,
+        contactPhone: editForm.contactPhone,
+        city: editForm.city,
+        payoutPerOrder: Number(editForm.payoutPerOrder),
+      };
+      if (editForm.password) {
+        payload.password = editForm.password;
+      }
+      await api.patch(`/dsp-partners/${editPartner.id}`, payload);
+      alert(`✅ Asociación ${editForm.name} actualizada con éxito.`);
+      setEditPartner(null);
+      fetchPartners();
+    } catch (err: any) {
+      alert(`Error al actualizar asociación: ${err.message}`);
+    } finally {
+      setIsEditingSubmitting(false);
     }
   };
 
@@ -297,23 +366,36 @@ export const DspPartners: React.FC = () => {
                     </td>
 
                     <td className="py-4 px-6 text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleActive(partner.id)}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
-                      >
-                        {partner.isActive ? (
-                          <>
-                            <ToggleRight className="w-4 h-4 text-emerald-600" />
-                            <span>Suspender</span>
-                          </>
-                        ) : (
-                          <>
-                            <ToggleLeft className="w-4 h-4 text-slate-400" />
-                            <span>Activar</span>
-                          </>
-                        )}
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(partner)}
+                          className="p-1.5 hover:bg-slate-100 text-slate-600 hover:text-slate-900 rounded-lg transition-colors cursor-pointer"
+                          title="Editar datos de la asociación"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(partner.id)}
+                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            partner.isActive
+                              ? 'hover:bg-amber-50 text-slate-400 hover:text-amber-600'
+                              : 'hover:bg-emerald-50 text-amber-600 hover:text-emerald-600'
+                          }`}
+                          title={partner.isActive ? 'Suspender asociación' : 'Activar asociación'}
+                        >
+                          {partner.isActive ? <ToggleRight className="w-4 h-4 text-emerald-600" /> : <ToggleLeft className="w-4 h-4 text-slate-400" />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePartner(partner)}
+                          className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                          title="Eliminar asociación definitivamente"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -482,6 +564,141 @@ export const DspPartners: React.FC = () => {
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   <span>Guardar y Habilitar</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Editar Asociación (CRUD) */}
+      {editPartner && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative animate-in fade-in zoom-in-95">
+            <button
+              type="button"
+              onClick={() => setEditPartner(null)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-900">Editar Asociación / DSP Partner</h3>
+                <p className="text-xs text-slate-500 font-medium">Modifica los datos, contactos o comisión de la asociación</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleUpdatePartner} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Nombre de la Asociación *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Código Identificador *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.code}
+                    onChange={(e) => setEditForm({ ...editForm, code: e.target.value.toUpperCase() })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500 uppercase font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Correo de Acceso *</label>
+                  <input
+                    type="email"
+                    required
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Nueva Contraseña (Opcional)</label>
+                  <input
+                    type="password"
+                    placeholder="Mantener contraseña actual"
+                    value={editForm.password}
+                    onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Representante / Contacto</label>
+                  <input
+                    type="text"
+                    value={editForm.contactName}
+                    onChange={(e) => setEditForm({ ...editForm, contactName: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Celular / WhatsApp</label>
+                  <input
+                    type="text"
+                    value={editForm.contactPhone}
+                    onChange={(e) => setEditForm({ ...editForm, contactPhone: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Ciudad Base</label>
+                  <input
+                    type="text"
+                    value={editForm.city}
+                    onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Tarifa por Entrega (Bs.)</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    value={editForm.payoutPerOrder}
+                    onChange={(e) => setEditForm({ ...editForm, payoutPerOrder: parseFloat(e.target.value) || 0 })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditPartner(null)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditingSubmitting}
+                  className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm shadow-indigo-600/20"
+                >
+                  {isEditingSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  <span>Guardar Cambios</span>
                 </button>
               </div>
             </form>
