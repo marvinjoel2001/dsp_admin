@@ -55,8 +55,8 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-hidden font-sans select-none bg-slate-50">
-      {/* Background Image — Full Canvas Light Mode */}
+    <div className="min-h-screen w-full flex items-center justify-between p-4 sm:p-6 lg:p-10 relative overflow-hidden font-sans select-none bg-slate-50">
+      {/* Background Image — Centered Character Artwork */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-100 contrast-100"
         style={{
@@ -65,122 +65,112 @@ export const Login: React.FC = () => {
       />
 
       {/* Gentle transparent wash */}
-      <div className="absolute inset-0 bg-white/10 backdrop-blur-[0.5px]" />
+      <div className="absolute inset-0 bg-white/5 backdrop-blur-[0.5px]" />
       
-      {/* Soft Ambient Halo behind the right side */}
-      <div className="absolute top-1/2 right-12 -translate-y-1/2 w-[550px] h-[650px] bg-emerald-300/20 rounded-[3rem] blur-3xl pointer-events-none" />
+      {/* Soft Ambient Halo on the right side */}
+      <div className="absolute top-1/2 -right-10 -translate-y-1/2 w-[480px] h-[580px] bg-emerald-300/20 rounded-[3rem] blur-3xl pointer-events-none" />
 
-      {/* Main Responsive Grid: Left Collage / Right Login Card */}
-      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
+      {/* Main Responsive Container: Left Hero / Center Clear / Right Login */}
+      <div className="w-full max-w-[1400px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
         
-        {/* ================= LEFT SIDE: Floating Newspaper / Editorial Collage ================= */}
-        <div className="hidden lg:flex lg:col-span-7 flex-col justify-center space-y-6 pr-4 animate-in fade-in slide-in-from-left-6 duration-700">
+        {/* ================= LEFT SIDE: Compact Left-Aligned Collage ================= */}
+        <div className="hidden lg:flex flex-col justify-center max-w-[420px] space-y-4 animate-in fade-in slide-in-from-left-6 duration-700">
           
           {/* Sticker 1: Top Tag */}
-          <div className="inline-flex items-center gap-2 self-start bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl border-2 border-emerald-400/60 shadow-[0_8px_20px_rgba(16,185,129,0.2)] -rotate-2 hover:rotate-0 transition-transform duration-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-            <span className="text-[11px] font-black tracking-wider uppercase text-emerald-900">
-              Open DSP Platform • Red de Despacho Inteligente
+          <div className="inline-flex items-center gap-2 self-start bg-white/90 backdrop-blur-md px-3.5 py-1 rounded-2xl border-2 border-emerald-400/60 shadow-[0_6px_16px_rgba(16,185,129,0.15)] -rotate-1 hover:rotate-0 transition-transform">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            <span className="text-[10px] font-black tracking-wider uppercase text-emerald-950">
+              Open DSP • Despacho Inteligente
             </span>
           </div>
 
-          {/* Dynamic Headline Collage (Mixed typography sizes like newspaper cutouts) */}
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-4xl xl:text-5xl font-black text-slate-900 tracking-tight drop-shadow-sm">
+          {/* Dynamic Headline Collage */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-3xl xl:text-4xl font-black text-slate-900 tracking-tight drop-shadow-xs">
                 LO MÁS
               </span>
-              <span className="text-4xl xl:text-5xl font-black bg-[#4ade80] text-slate-950 px-4 py-1 rounded-2xl border-2 border-[#22c55e] shadow-md -rotate-1 hover:rotate-0 transition-transform">
+              <span className="text-3xl xl:text-4xl font-black bg-[#4ade80] text-slate-950 px-3 py-0.5 rounded-xl border-2 border-[#22c55e] shadow-sm -rotate-1">
                 RÁPIDO.
               </span>
-              <span className="text-3xl xl:text-4xl font-extrabold text-slate-800 tracking-tight">
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-2xl xl:text-3xl font-extrabold text-slate-800 tracking-tight">
                 LO MÁS
               </span>
-              <span className="text-3xl xl:text-4xl font-black bg-white/95 text-emerald-800 px-3.5 py-1 rounded-2xl border-2 border-emerald-300 shadow-md rotate-2 hover:rotate-0 transition-transform">
+              <span className="text-2xl xl:text-3xl font-black bg-white/95 text-emerald-800 px-3 py-0.5 rounded-xl border-2 border-emerald-300 shadow-sm rotate-1">
                 EFICIENTE.
               </span>
             </div>
 
-            <h2 className="text-2xl xl:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+            <p className="text-xs font-bold text-slate-800 tracking-wide leading-snug pt-1">
               Control centralizado de flotas, pedidos y conductores en tiempo real.
-            </h2>
+            </p>
           </div>
 
-          {/* Floating Editorial Badges / Feature Cards */}
-          <div className="grid grid-cols-2 gap-3.5 pt-2">
+          {/* Compact Left-Stacked Feature Badges */}
+          <div className="space-y-2.5 pt-1">
             
             {/* Feature 1 */}
-            <div className="bg-white/85 hover:bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border-2 border-emerald-300/70 shadow-[0_10px_25px_rgba(0,0,0,0.04)] transform hover:-translate-y-1 transition-all duration-300 -rotate-1">
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-7 h-7 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
-                  <Zap className="w-4 h-4" />
+            <div className="bg-white/85 hover:bg-white/95 backdrop-blur-md p-2.5 px-3 rounded-xl border-2 border-emerald-300/60 shadow-2xs transform hover:scale-[1.02] transition-all -rotate-1">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                  <Zap className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-xs font-black text-slate-900">Auto-Despacho &lt; 15ms</span>
+                <div className="flex-1">
+                  <span className="text-[11px] font-black text-slate-900 block">Auto-Despacho &lt; 15ms</span>
+                  <span className="text-[10px] font-bold text-slate-600 leading-none">Asignación ultra-rápida por algoritmos geoespaciales.</span>
+                </div>
               </div>
-              <p className="text-[11px] font-bold text-slate-600 leading-snug">
-                Algoritmos geoespaciales asignan la orden al motorizado más cercano en milisegundos.
-              </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-white/85 hover:bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border-2 border-emerald-300/70 shadow-[0_10px_25px_rgba(0,0,0,0.04)] transform hover:-translate-y-1 transition-all duration-300 rotate-1">
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-7 h-7 rounded-xl bg-teal-100 flex items-center justify-center text-teal-700">
-                  <Navigation className="w-4 h-4" />
+            <div className="bg-white/85 hover:bg-white/95 backdrop-blur-md p-2.5 px-3 rounded-xl border-2 border-emerald-300/60 shadow-2xs transform hover:scale-[1.02] transition-all rotate-1">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-teal-100 flex items-center justify-center text-teal-700 shrink-0">
+                  <Navigation className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-xs font-black text-slate-900">Rastreo GPS Write-Behind</span>
+                <div className="flex-1">
+                  <span className="text-[11px] font-black text-slate-900 block">Rastreo GPS Write-Behind</span>
+                  <span className="text-[10px] font-bold text-slate-600 leading-none">Telemetría en memoria Redis para 1,000+ conductores.</span>
+                </div>
               </div>
-              <p className="text-[11px] font-bold text-slate-600 leading-snug">
-                Telemetría en memoria Redis con persistencia por lotes preparada para 1,000+ conductores.
-              </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-white/85 hover:bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border-2 border-emerald-300/70 shadow-[0_10px_25px_rgba(0,0,0,0.04)] transform hover:-translate-y-1 transition-all duration-300 rotate-1">
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-7 h-7 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700">
-                  <TrendingUp className="w-4 h-4" />
+            <div className="bg-white/85 hover:bg-white/95 backdrop-blur-md p-2.5 px-3 rounded-xl border-2 border-emerald-300/60 shadow-2xs transform hover:scale-[1.02] transition-all -rotate-1">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+                  <TrendingUp className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-xs font-black text-slate-900">Tarifas Dinámicas por Tramo</span>
-              </div>
-              <p className="text-[11px] font-bold text-slate-600 leading-snug">
-                Configuración personalizada de precios para Moto, Auto y Bici con simulador integrado.
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="bg-white/85 hover:bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border-2 border-emerald-300/70 shadow-[0_10px_25px_rgba(0,0,0,0.04)] transform hover:-translate-y-1 transition-all duration-300 -rotate-1">
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-7 h-7 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
-                  <ShieldCheck className="w-4 h-4" />
+                <div className="flex-1">
+                  <span className="text-[11px] font-black text-slate-900 block">Tarifas Dinámicas por Tramo</span>
+                  <span className="text-[10px] font-bold text-slate-600 leading-none">Precios configurables por km para Moto, Auto y Bici.</span>
                 </div>
-                <span className="text-xs font-black text-slate-900">Multi-Tenancy &amp; DSPs</span>
               </div>
-              <p className="text-[11px] font-bold text-slate-600 leading-snug">
-                Delegación automática a asociaciones de conductores con cálculo de comisiones exacto.
-              </p>
             </div>
 
           </div>
 
-          {/* Sticker Bottom Pill */}
-          <div className="flex items-center gap-4 pt-1">
-            <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-emerald-300 shadow-xs">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span className="text-[11px] font-black text-slate-800">Servidores en Línea (99.9% Uptime)</span>
+          {/* Bottom Indicators */}
+          <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-emerald-300 shadow-2xs">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="text-[10px] font-black text-slate-800">Uptime 99.9%</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-emerald-300 shadow-xs">
-              <Activity className="w-4 h-4 text-emerald-600 animate-pulse" />
-              <span className="text-[11px] font-black text-slate-800">WebSockets de Baja Latencia</span>
+            <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-emerald-300 shadow-2xs">
+              <Activity className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+              <span className="text-[10px] font-black text-slate-800">WebSockets Baja Latencia</span>
             </div>
           </div>
         </div>
 
-        {/* ================= RIGHT SIDE: Glassmorphic Login Card ================= */}
-        <div className="lg:col-span-5 flex justify-center lg:justify-end">
-          <div className="w-full max-w-[400px] relative z-10 animate-in fade-in zoom-in-95 duration-400 pt-5">
+        {/* ================= RIGHT SIDE: Compact Glassmorphic Login Card ================= */}
+        <div className="w-full lg:w-auto flex justify-center lg:justify-end">
+          <div className="w-full max-w-[380px] relative z-10 animate-in fade-in zoom-in-95 duration-400 pt-5">
             
-            {/* Floating Badge with Mascot (Small Compact Size) */}
+            {/* Floating Badge with Mascot */}
             <div className="flex justify-center -mb-6 relative z-20">
               <div className="relative group cursor-pointer" onClick={() => handleQuickFill('admin', 'admin')}>
                 {/* Outer Mint Glow */}
@@ -198,10 +188,10 @@ export const Login: React.FC = () => {
             </div>
 
             {/* Card Body — Ultra Transparent Glass */}
-            <div className="bg-white/40 hover:bg-white/50 transition-all duration-300 backdrop-blur-md rounded-[2rem] p-6 sm:p-7 pt-9 border-2 border-white/80 shadow-[0_20px_45px_rgba(0,0,0,0.06),inset_0_1px_3px_rgba(255,255,255,0.9)] relative overflow-hidden">
+            <div className="bg-white/45 hover:bg-white/55 transition-all duration-300 backdrop-blur-md rounded-[2rem] p-5 sm:p-6 pt-8 border-2 border-white/80 shadow-[0_20px_45px_rgba(0,0,0,0.06),inset_0_1px_3px_rgba(255,255,255,0.9)] relative overflow-hidden">
               
               {/* Brand Header */}
-              <div className="text-center mb-4">
+              <div className="text-center mb-3.5">
                 <h1 className="text-xl font-black text-slate-900 tracking-tight">
                   Chiringuito DSP
                 </h1>
@@ -215,17 +205,17 @@ export const Login: React.FC = () => {
 
               {/* Error Message */}
               {errorMessage && (
-                <div className="mb-3.5 p-2.5 bg-red-50/95 border-2 border-red-300 rounded-xl flex items-start gap-2 text-xs text-red-900 shadow-sm animate-in fade-in duration-200 backdrop-blur-md">
+                <div className="mb-3 p-2 bg-red-50/95 border-2 border-red-300 rounded-xl flex items-start gap-2 text-xs text-red-900 shadow-sm animate-in fade-in duration-200 backdrop-blur-md">
                   <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                   <div className="flex-1 font-bold">{errorMessage}</div>
                 </div>
               )}
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-3">
+              <form onSubmit={handleSubmit} className="space-y-2.5">
                 {/* Input Usuario */}
                 <div className="relative flex items-center">
-                  <div className="absolute left-3.5 flex items-center pointer-events-none text-emerald-700">
+                  <div className="absolute left-3 flex items-center pointer-events-none text-emerald-700">
                     <User className="w-4 h-4" />
                   </div>
                   <input
@@ -234,7 +224,7 @@ export const Login: React.FC = () => {
                     value={usernameOrEmail}
                     onChange={(e) => setUsernameOrEmail(e.target.value)}
                     placeholder="admin, motos@dsp.com o correo"
-                    className="w-full bg-white/80 hover:bg-white/95 focus:bg-white backdrop-blur-sm border-2 border-emerald-400/70 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-300/40 rounded-xl pl-10 pr-4 py-2.5 text-xs font-extrabold text-slate-950 placeholder-slate-500 shadow-xs transition-all focus:outline-none"
+                    className="w-full bg-white/80 hover:bg-white/95 focus:bg-white backdrop-blur-sm border-2 border-emerald-400/70 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-300/40 rounded-xl pl-9 pr-4 py-2 text-xs font-extrabold text-slate-950 placeholder-slate-500 shadow-xs transition-all focus:outline-none"
                     disabled={isLoading}
                     autoComplete="username"
                   />
@@ -242,7 +232,7 @@ export const Login: React.FC = () => {
 
                 {/* Input Contraseña */}
                 <div className="relative flex items-center">
-                  <div className="absolute left-3.5 flex items-center pointer-events-none text-emerald-700">
+                  <div className="absolute left-3 flex items-center pointer-events-none text-emerald-700">
                     <Key className="w-4 h-4" />
                   </div>
                   <input
@@ -251,7 +241,7 @@ export const Login: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-white/80 hover:bg-white/95 focus:bg-white backdrop-blur-sm border-2 border-emerald-400/70 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-300/40 rounded-xl pl-10 pr-10 py-2.5 text-xs font-extrabold text-slate-950 placeholder-slate-500 shadow-xs transition-all focus:outline-none"
+                    className="w-full bg-white/80 hover:bg-white/95 focus:bg-white backdrop-blur-sm border-2 border-emerald-400/70 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-300/40 rounded-xl pl-9 pr-9 py-2 text-xs font-extrabold text-slate-950 placeholder-slate-500 shadow-xs transition-all focus:outline-none"
                     disabled={isLoading}
                     autoComplete="current-password"
                   />
@@ -266,7 +256,7 @@ export const Login: React.FC = () => {
                 </div>
 
                 {/* Options Row */}
-                <div className="flex items-center justify-between text-[11px] px-1 pt-0.5">
+                <div className="flex items-center justify-between text-[11px] px-1">
                   <label className="flex items-center gap-1.5 cursor-pointer text-slate-800 font-bold">
                     <input
                       type="checkbox"
@@ -290,7 +280,7 @@ export const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full mt-1 py-2.5 px-4 rounded-xl text-xs font-black text-slate-950 bg-[#4ade80] hover:bg-[#22c55e] border border-[#22c55e] shadow-[0_6px_18px_rgba(74,222,128,0.4)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                  className="w-full mt-0.5 py-2.5 px-4 rounded-xl text-xs font-black text-slate-950 bg-[#4ade80] hover:bg-[#22c55e] border border-[#22c55e] shadow-[0_6px_18px_rgba(74,222,128,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
                 >
                   {isLoading ? (
                     <>
@@ -304,7 +294,7 @@ export const Login: React.FC = () => {
               </form>
 
               {/* Divider */}
-              <div className="relative my-3.5">
+              <div className="relative my-3">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-400/30" />
                 </div>
@@ -316,10 +306,10 @@ export const Login: React.FC = () => {
               </div>
 
               {/* Quick Access Badges */}
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {/* Super Admin Pill */}
-                <div className="flex items-center justify-between p-2 px-3 rounded-xl bg-white/80 hover:bg-white/95 backdrop-blur-sm border-2 border-emerald-400/40 hover:border-emerald-500 shadow-2xs transition-all">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between p-1.5 px-2.5 rounded-xl bg-white/80 hover:bg-white/95 backdrop-blur-sm border-2 border-emerald-400/40 hover:border-emerald-500 shadow-2xs transition-all">
+                  <div className="flex items-center gap-1.5">
                     <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800">
                       <Crown className="w-3 h-3 text-emerald-700" />
                     </div>
@@ -332,15 +322,15 @@ export const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleQuickFill('admin', 'admin', true)}
-                    className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-[#4ade80] hover:bg-[#22c55e] text-slate-950 border border-[#22c55e] shadow-xs transition-all cursor-pointer active:scale-95"
+                    className="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-[#4ade80] hover:bg-[#22c55e] text-slate-950 border border-[#22c55e] shadow-xs transition-all cursor-pointer active:scale-95"
                   >
                     Cargar
                   </button>
                 </div>
 
                 {/* DSP / Motos Pill */}
-                <div className="flex items-center justify-between p-2 px-3 rounded-xl bg-white/80 hover:bg-white/95 backdrop-blur-sm border-2 border-emerald-400/40 hover:border-emerald-500 shadow-2xs transition-all">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between p-1.5 px-2.5 rounded-xl bg-white/80 hover:bg-white/95 backdrop-blur-sm border-2 border-emerald-400/40 hover:border-emerald-500 shadow-2xs transition-all">
+                  <div className="flex items-center gap-1.5">
                     <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800">
                       <Building2 className="w-3 h-3 text-emerald-700" />
                     </div>
@@ -353,7 +343,7 @@ export const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleQuickFill('motos@dsp.com', 'admin123', true)}
-                    className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-[#4ade80] hover:bg-[#22c55e] text-slate-950 border border-[#22c55e] shadow-xs transition-all cursor-pointer active:scale-95"
+                    className="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-[#4ade80] hover:bg-[#22c55e] text-slate-950 border border-[#22c55e] shadow-xs transition-all cursor-pointer active:scale-95"
                   >
                     Cargar
                   </button>
@@ -361,11 +351,11 @@ export const Login: React.FC = () => {
               </div>
 
               {/* SSO / Acceso Corporativo Directo */}
-              <div className="mt-2.5">
+              <div className="mt-2">
                 <button
                   type="button"
                   onClick={() => handleQuickFill('admin', 'admin', true)}
-                  className="w-full py-2 px-3 rounded-xl text-[11px] font-black text-slate-800 bg-white/80 hover:bg-white backdrop-blur-sm border-2 border-slate-300 hover:border-emerald-400 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+                  className="w-full py-1.5 px-3 rounded-xl text-[10px] font-black text-slate-800 bg-white/80 hover:bg-white backdrop-blur-sm border-2 border-slate-300 hover:border-emerald-400 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
                   <span>SSO / Acceso Directo</span>
@@ -373,8 +363,8 @@ export const Login: React.FC = () => {
               </div>
 
               {/* Footer Note */}
-              <div className="text-center mt-3.5">
-                <p className="text-[11px] text-slate-700 font-bold">
+              <div className="text-center mt-2.5">
+                <p className="text-[10px] text-slate-700 font-bold">
                   ¿No tienes acceso?{' '}
                   <a
                     href="#help"
