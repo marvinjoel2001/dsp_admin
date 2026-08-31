@@ -15,6 +15,7 @@ import { TestingLab } from './pages/TestingLab';
 import { MerchantSettlements } from './pages/MerchantSettlements';
 import { DriverPayouts } from './pages/DriverPayouts';
 import { DspPartners } from './pages/DspPartners';
+import { PublicTracking } from './pages/PublicTracking';
 import { Login } from './pages/Login';
 
 const MainLayout: React.FC = () => {
@@ -58,7 +59,14 @@ export const App: React.FC = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <MainLayout />
+        <Routes>
+          {/* Ruta Pública para Clientes Finales (Accesible desde WhatsApp/SMS sin Login) */}
+          <Route path="/track/:token" element={<PublicTracking />} />
+          <Route path="/t/:token" element={<PublicTracking />} />
+
+          {/* Rutas Administrativas y Operativas Protegidas */}
+          <Route path="/*" element={<MainLayout />} />
+        </Routes>
       </BrowserRouter>
     </AuthProvider>
   );

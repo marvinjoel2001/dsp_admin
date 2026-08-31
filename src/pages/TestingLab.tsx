@@ -188,7 +188,7 @@ export const TestingLab: React.FC = () => {
         dropoff_address: orderData.dropoffAddress,
         price: orderData.price,
         driver_payout: orderData.driverPayout,
-        tracking_url: `https://tracking.chiringuito.bo/t/${orderData.trackingToken || orderData.id}`,
+        tracking_url: `${window.location.origin}/track/${orderData.trackingToken || orderData.id}`,
         proof_photo_url: orderData.proofPhotoUrl || null,
       },
     };
@@ -825,8 +825,17 @@ export const TestingLab: React.FC = () => {
                         <div className="font-bold text-white">
                           {log.responsePayload.message}
                         </div>
-                        <div className="text-[10px] text-indigo-400 font-mono">
-                          Tracking Token: {log.receivedPayload.data.tracking_url}
+                        <div className="text-[10px] text-indigo-400 font-mono flex items-center gap-1.5 flex-wrap">
+                          <span>Tracking:</span>
+                          <a
+                            href={log.receivedPayload.data.tracking_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-emerald-400 hover:text-emerald-300 underline font-bold flex items-center gap-1"
+                          >
+                            <span>{log.receivedPayload.data.tracking_url}</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
                         </div>
                       </div>
                     </div>

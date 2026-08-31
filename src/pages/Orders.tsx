@@ -592,13 +592,37 @@ export const Orders: React.FC = () => {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setSelectedOrder(null)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <a
+                  href={`/track/${selectedOrder.trackingToken || selectedOrder.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                  title="Abrir mapa de rastreo público para el cliente"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Ver Tracking en Vivo</span>
+                </a>
+
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`Hola, puedes seguir la entrega de tu pedido #${selectedOrder.merchantReference} en vivo aquí: ${window.location.origin}/track/${selectedOrder.trackingToken || selectedOrder.id}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                  title="Enviar enlace de rastreo por WhatsApp al cliente"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Enviar por WhatsApp</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrder(null)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Cuerpo del Modal */}
