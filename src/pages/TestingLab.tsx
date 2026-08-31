@@ -63,6 +63,7 @@ export const TestingLab: React.FC = () => {
   // 1. Tiendas / Tenants
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [selectedTenantId, setSelectedTenantId] = useState<string>('');
+  const [availableDrivers, setAvailableDrivers] = useState<any[]>([]);
   const [customApiKey, setCustomApiKey] = useState<string>('');
   const [isLoadingTenants, setIsLoadingTenants] = useState(false);
 
@@ -124,6 +125,11 @@ export const TestingLab: React.FC = () => {
 
   useEffect(() => {
     fetchTenants();
+    api.get('/drivers')
+      .then((res) => {
+        if (Array.isArray(res)) setAvailableDrivers(res);
+      })
+      .catch(() => {});
   }, []);
 
   const selectedTenant = tenants.find((t) => t.id === selectedTenantId);
@@ -293,17 +299,28 @@ export const TestingLab: React.FC = () => {
     setIsAdvancingStage(true);
 
     try {
-      // Si la etapa requiere conductor y aún no tiene, asignar un conductor ficticio/real
+      // Si la etapa requiere conductor y aún no tiene, asignar el primer conductor real disponible o Marvin
       let updatedOrder = { ...activeOrder, status: nextStatus };
 
       if (nextStatus === 'ASSIGNED' || !updatedOrder.driver) {
-        updatedOrder.driver = {
-          id: 'driver-carlos-m',
-          fullName: 'Carlos Mendoza Rojas',
-          phone: '+591 71234567',
-          vehicleType: 'MOTORCYCLE',
-          vehiclePlate: '4589-KLT',
-        };
+        let assignedDriver = availableDrivers.length > 0 ? availableDrivers[0] : null;
+        if (assignedDriver) {
+          updatedOrder.driver = {
+            id: assignedDriver.id,
+            fullName: assignedDriver.fullName,
+            phone: assignedDriver.phone,
+            vehicleType: assignedDriver.vehicleType || 'MOTORCYCLE',
+            vehiclePlate: assignedDriver.vehiclePlate || '4589-KLT',
+          };
+        } else {
+          updatedOrder.driver = {
+            id: 'marvin-driver',
+            fullName: 'Marvin Repartidor Oficial',
+            phone: '+591 70000000',
+            vehicleType: 'MOTORCYCLE',
+            vehiclePlate: '4589-KLT',
+          };
+        }
       }
 
       if (nextStatus === 'DELIVERED') {
