@@ -530,7 +530,7 @@ export const Orders: React.FC = () => {
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-xs font-bold">
           <button
             onClick={() => setStatusFilter('ALL')}
-            className={`px-3 py-2 rounded-xl transition-all ${
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer ${
               statusFilter === 'ALL' ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
@@ -538,7 +538,7 @@ export const Orders: React.FC = () => {
           </button>
           <button
             onClick={() => setStatusFilter('SEARCHING_DRIVER')}
-            className={`px-3 py-2 rounded-xl transition-all ${
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer ${
               statusFilter === 'SEARCHING_DRIVER' ? 'bg-amber-500 text-white shadow-xs' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
             }`}
           >
@@ -546,15 +546,23 @@ export const Orders: React.FC = () => {
           </button>
           <button
             onClick={() => setStatusFilter('ASSIGNED')}
-            className={`px-3 py-2 rounded-xl transition-all ${
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer ${
               statusFilter === 'ASSIGNED' ? 'bg-purple-600 text-white shadow-xs' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
             }`}
           >
             Asignados ({orders.filter((o) => o.status === 'ASSIGNED').length})
           </button>
           <button
+            onClick={() => setStatusFilter('ARRIVED_AT_PICKUP')}
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer ${
+              statusFilter === 'ARRIVED_AT_PICKUP' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100'
+            }`}
+          >
+            En Comercio ({orders.filter((o) => o.status === 'ARRIVED_AT_PICKUP').length})
+          </button>
+          <button
             onClick={() => setStatusFilter('IN_TRANSIT')}
-            className={`px-3 py-2 rounded-xl transition-all ${
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer ${
               statusFilter === 'IN_TRANSIT' ? 'bg-blue-600 text-white shadow-xs' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
             }`}
           >
@@ -562,16 +570,24 @@ export const Orders: React.FC = () => {
           </button>
           <button
             onClick={() => setStatusFilter('DELIVERED')}
-            className={`px-3 py-2 rounded-xl transition-all ${
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer ${
               statusFilter === 'DELIVERED' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
             }`}
           >
             Entregados ({orders.filter((o) => o.status === 'DELIVERED').length})
           </button>
+          <button
+            onClick={() => setStatusFilter('CANCELLED')}
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer ${
+              statusFilter === 'CANCELLED' ? 'bg-rose-600 text-white shadow-xs' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+            }`}
+          >
+            Cancelados ({orders.filter((o) => o.status === 'CANCELLED').length})
+          </button>
           {stuckOrders.length > 0 && (
             <button
               onClick={() => setStatusFilter('STUCK')}
-              className={`px-3 py-2 rounded-xl transition-all ${
+              className={`px-3 py-2 rounded-xl transition-all cursor-pointer ${
                 statusFilter === 'STUCK' ? 'bg-red-600 text-white shadow-xs animate-pulse' : 'bg-red-50 text-red-700 hover:bg-red-100'
               }`}
             >
@@ -668,6 +684,8 @@ export const Orders: React.FC = () => {
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : o.status === 'IN_TRANSIT'
                               ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                              : o.status === 'ARRIVED_AT_PICKUP'
+                              ? 'bg-cyan-50 text-cyan-700 border border-cyan-200'
                               : o.status === 'ASSIGNED'
                               ? 'bg-purple-50 text-purple-700 border border-purple-200'
                               : o.status === 'CANCELLED'
@@ -679,6 +697,8 @@ export const Orders: React.FC = () => {
                             ? 'EN CAMINO'
                             : o.status === 'DELIVERED'
                             ? 'ENTREGADO'
+                            : o.status === 'ARRIVED_AT_PICKUP'
+                            ? 'EN COMERCIO'
                             : o.status === 'ASSIGNED'
                             ? 'ASIGNADO'
                             : o.status === 'CANCELLED'
@@ -1074,9 +1094,11 @@ export const Orders: React.FC = () => {
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900"
                 >
                   <option value="DELIVERED">✅ DELIVERED (Marcar como Entregada)</option>
-                  <option value="CANCELLED">❌ CANCELLED (Cancelar Pedido)</option>
-                  <option value="SEARCHING_DRIVER">🔄 SEARCHING_DRIVER (Reactivar Búsqueda)</option>
                   <option value="IN_TRANSIT">🛵 IN_TRANSIT (Marcar En Tránsito)</option>
+                  <option value="ARRIVED_AT_PICKUP">🏬 ARRIVED_AT_PICKUP (En Comercio / Local)</option>
+                  <option value="ASSIGNED">👤 ASSIGNED (Asignado a Repartidor)</option>
+                  <option value="SEARCHING_DRIVER">🔄 SEARCHING_DRIVER (Reactivar Búsqueda)</option>
+                  <option value="CANCELLED">❌ CANCELLED (Cancelar Pedido)</option>
                 </select>
               </div>
 
