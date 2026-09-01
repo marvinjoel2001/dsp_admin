@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Star,
@@ -25,10 +25,14 @@ import {
   Trash2,
   Ban,
   UserCheck,
+  Bike,
+  Building2,
+  DollarSign,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { notify } from '../utils/notify';
+import { Pagination } from '../components/Pagination';
 
 export const Drivers: React.FC = () => {
   const { user } = useAuth();
@@ -280,24 +284,43 @@ export const Drivers: React.FC = () => {
     }
   };
 
-  const filteredDrivers = drivers.filter((d) => {
-    const q = searchQuery.toLowerCase().trim();
-    const matchSearch =
-      !q ||
-      d.fullName?.toLowerCase().includes(q) ||
-      d.phone?.includes(q) ||
-      d.email?.toLowerCase().includes(q) ||
-      d.vehiclePlate?.toLowerCase().includes(q) ||
-      d.vehicleType?.toLowerCase().includes(q);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
 
-    if (!matchSearch) return false;
+  // Reset page when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filter]);
 
-    const vStatus = (d.verificationStatus || '').toLowerCase();
-    if (filter === 'pending') return vStatus === 'pending';
-    if (filter === 'verified') return vStatus === 'verified';
-    if (filter === 'online') return !!d.isOnline;
-    return true;
-  });
+  const filteredDrivers = useMemo(() => {
+    return drivers.filter((d) => {
+      const q = searchQuery.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        d.id?.toLowerCase().includes(q) ||
+        d.fullName?.toLowerCase().includes(q) ||
+        d.phone?.includes(q) ||
+        d.email?.toLowerCase().includes(q) ||
+        d.ciNumber?.toLowerCase().includes(q) ||
+        d.homeAddress?.toLowerCase().includes(q) ||
+        d.vehiclePlate?.toLowerCase().includes(q) ||
+        d.vehicleType?.toLowerCase().includes(q) ||
+        d.dspPartnerId?.toLowerCase().includes(q);
+
+      if (!matchSearch) return false;
+
+      const vStatus = (d.verificationStatus || '').toLowerCase();
+      if (filter === 'pending') return vStatus === 'pending';
+      if (filter === 'verified') return vStatus === 'verified';
+      if (filter === 'online') return !!d.isOnline;
+      return true;
+    });
+  }, [drivers, searchQuery, filter]);
+
+  const paginatedDrivers = useMemo(() => {
+    const fromIndex = (currentPage - 1) * pageSize;
+    return filteredDrivers.slice(fromIndex, fromIndex + pageSize);
+  }, [filteredDrivers, currentPage, pageSize]);
 
   return (
     <div className="p-8 space-y-8">
@@ -399,179 +422,208 @@ export const Drivers: React.FC = () => {
 
       {/* Grid de Conductores */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredDrivers.map((d) => {
-          const isVerified = d.verificationStatus === 'verified';
-          const isPending = d.verificationStatus === 'pending';
-          const isRejected = d.verificationStatus === 'rejected';
+        {paginatedDrivers.length === 0 ? (
+          <div className="col-span-full p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200/80">
+            No se encontraron conductores con los filtros aplicados.
+          </div>
+        ) : (
+          paginatedDrivers.map((d) => {
+            const isVerified = d.verificationStatus === 'verified';
+            const isPending = d.verificationStatus === 'pending';
+            const isRejected = d.verificationStatus === 'rejected';
 
-          return (
-            <div
-              key={d.id}
-              className="glass-card rounded-2xl p-6 space-y-4 hover:shadow-md transition-all border border-slate-200/80 bg-white"
-            >
-              {/* Header de Tarjeta */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-800 font-black text-lg shadow-xs">
-                    {d.fullName.substring(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="text-sm font-bold text-slate-900">{d.fullName}</h3>
-                      {isVerified && <ShieldCheck className="w-4 h-4 text-emerald-600" />}
+            return (
+              <div
+                key={d.id}
+                className="glass-card rounded-2xl p-6 space-y-4 hover:shadow-md transition-all border border-slate-200/80 bg-white"
+              >
+                {/* Header de Tarjeta */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-800 font-black text-lg shadow-xs">
+                      {d.fullName.substring(0, 2).toUpperCase()}
                     </div>
-                    <p className="text-xs text-slate-500 font-medium">{d.phone}</p>
-                    <p className="text-[11px] text-slate-400 font-mono">{d.email}</p>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="text-sm font-bold text-slate-900">{d.fullName}</h3>
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            d.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'
+                          }`}
+                          title={d.isOnline ? 'Conductor Conectado' : 'Conductor Desconectado'}
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium">{d.phone}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg text-amber-800 text-xs font-bold shadow-xs">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
-                  {d.rating || 5.0}
-                </div>
-              </div>
-
-              {/* Insignia de Estado de Documentación */}
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                <div className="flex items-center gap-2">
-                  {isVerified && (
-                    <span className="flex items-center gap-1 text-emerald-700 font-extrabold text-[11px]">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      Documentación Aprobada
-                    </span>
-                  )}
-                  {isPending && (
-                    <span className="flex items-center gap-1 text-amber-700 font-extrabold text-[11px]">
-                      <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
-                      Documentos Pendientes
-                    </span>
-                  )}
-                  {isRejected && (
-                    <span className="flex items-center gap-1 text-rose-700 font-extrabold text-[11px]">
-                      <XCircle className="w-4 h-4 text-rose-600" />
-                      Documentos Rechazados
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  {isPending && (
-                    <button
-                      type="button"
-                      disabled={isUpdating}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleVerifyDriver(d.id, 'verified');
-                      }}
-                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
-                      title="Aprobar conductor directamente"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Aprobar
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setSelectedDriverForDocs(d)}
-                    className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 font-bold text-[11px] rounded-lg border border-slate-300 transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                  {/* Badge de Verificación */}
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                      isVerified
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : isPending
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}
                   >
-                    <Eye className="w-3.5 h-3.5 text-slate-600" />
-                    Fotos
-                  </button>
+                    {isVerified ? (
+                      <>
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        Verificado
+                      </>
+                    ) : isPending ? (
+                      <>
+                        <Clock className="w-3 h-3 text-amber-600" />
+                        Pendiente
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="w-3 h-3 text-rose-600" />
+                        Rechazado
+                      </>
+                    )}
+                  </span>
                 </div>
-              </div>
 
-              {/* Estadísticas de Vehículo y Billetera */}
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold">Vehículo</span>
-                  <p className="font-bold text-slate-800 mt-0.5">{d.vehicleType} ({d.vehiclePlate || 'N/A'})</p>
+                {/* Detalles de Vehículo y DSP */}
+                <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span className="font-medium flex items-center gap-1.5">
+                      <Bike className="w-3.5 h-3.5 text-slate-400" />
+                      Vehículo:
+                    </span>
+                    <span className="font-bold text-slate-800 uppercase">
+                      {d.vehicleType || 'Moto'} • {d.vehiclePlate || 'S/P'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span className="font-medium flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                      Asociación:
+                    </span>
+                    <span className="font-bold text-slate-800">
+                      {d.dspPartner?.name || (d.dspPartnerId ? `DSP #${d.dspPartnerId}` : 'Independiente')}
+                    </span>
+                  </div>
+
+                  {d.ciNumber && (
+                    <div className="flex items-center justify-between text-slate-600">
+                      <span className="font-medium flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-slate-400" />
+                        C.I.:
+                      </span>
+                      <span className="font-mono font-bold text-slate-800">{d.ciNumber}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold">Billetera</span>
+
+                {/* Saldo y Billetera */}
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                      Saldo en Billetera
+                    </span>
                     <button
                       type="button"
                       onClick={() => {
                         setAdjustDriver(d);
                         setAdjustAmount(50);
                       }}
-                      className="text-[10px] font-bold text-indigo-600 hover:underline cursor-pointer"
+                      className="text-[10px] font-bold text-emerald-700 hover:underline flex items-center gap-1 mt-0.5 cursor-pointer"
                     >
+                      <DollarSign className="w-3 h-3" />
                       Ajustar / Bono
                     </button>
                   </div>
                   <p className="font-extrabold text-emerald-700 mt-0.5">Bs. {Number(d.walletBalance || 0).toFixed(2)}</p>
                 </div>
+
+                {/* Barra de Turno Online */}
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                  <span
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${
+                      d.isOnline
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    {d.isOnline ? 'En Línea / GPS Activo' : 'Fuera de Línea'}
+                  </span>
+
+                  <button
+                    onClick={() => handleToggleOnline(d.id, d.isOnline)}
+                    className="text-xs font-bold text-slate-700 hover:text-emerald-700 flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    {d.isOnline ? <ToggleRight className="w-5 h-5 text-emerald-600" /> : <ToggleLeft className="w-5 h-5 text-slate-400" />}
+                    Turno
+                  </button>
+                </div>
+
+                {/* Barra de Gestión Administrativa (CRUD) */}
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEditModal(d)}
+                    className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                    title="Editar datos del conductor"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-slate-600" />
+                    Editar
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleToggleActive(d)}
+                    className={`flex-1 py-1.5 px-2 font-bold text-[11px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                      d.isActive
+                        ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'
+                        : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    }`}
+                    title={d.isActive ? 'Bloquear y suspender acceso' : 'Desbloquear y reactivar cuenta'}
+                  >
+                    {d.isActive ? (
+                      <>
+                        <Ban className="w-3.5 h-3.5 text-amber-600" />
+                        Bloquear
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        Reactivar
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteDriver(d)}
+                    className="py-1.5 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] rounded-lg border border-rose-200 transition-colors flex items-center justify-center cursor-pointer"
+                    title="Eliminar conductor permanentemente"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                  </button>
+                </div>
               </div>
+            );
+          })
+        )}
+      </div>
 
-              {/* Barra de Turno Online */}
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <span
-                  className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${
-                    d.isOnline
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'bg-slate-100 text-slate-500'
-                  }`}
-                >
-                  {d.isOnline ? 'En Línea / GPS Activo' : 'Fuera de Línea'}
-                </span>
-
-                <button
-                  onClick={() => handleToggleOnline(d.id, d.isOnline)}
-                  className="text-xs font-bold text-slate-700 hover:text-emerald-700 flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  {d.isOnline ? <ToggleRight className="w-5 h-5 text-emerald-600" /> : <ToggleLeft className="w-5 h-5 text-slate-400" />}
-                  Turno
-                </button>
-              </div>
-
-              {/* Barra de Gestión Administrativa (CRUD) */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => handleOpenEditModal(d)}
-                  className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
-                  title="Editar datos del conductor"
-                >
-                  <Edit2 className="w-3.5 h-3.5 text-slate-600" />
-                  Editar
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleToggleActive(d)}
-                  className={`flex-1 py-1.5 px-2 font-bold text-[11px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer ${
-                    d.isActive
-                      ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'
-                      : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
-                  }`}
-                  title={d.isActive ? 'Bloquear y suspender acceso' : 'Desbloquear y reactivar cuenta'}
-                >
-                  {d.isActive ? (
-                    <>
-                      <Ban className="w-3.5 h-3.5 text-amber-600" />
-                      Bloquear
-                    </>
-                  ) : (
-                    <>
-                      <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      Reactivar
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleDeleteDriver(d)}
-                  className="py-1.5 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] rounded-lg border border-rose-200 transition-colors flex items-center justify-center cursor-pointer"
-                  title="Eliminar conductor permanentemente"
-                >
-                  <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
+      {/* Paginación de Conductores */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredDrivers.length}
+          pageSize={pageSize}
+          pageSizeOptions={[6, 12, 24, 48]}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Modal de Verificación de Documentos */}

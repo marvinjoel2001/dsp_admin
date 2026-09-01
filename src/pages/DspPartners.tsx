@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ShieldCheck,
   Plus,
@@ -20,11 +20,14 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { notify } from '../utils/notify';
+import { Pagination } from '../components/Pagination';
 
 export const DspPartners: React.FC = () => {
   const [partners, setPartners] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Modal Crear
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -175,23 +178,36 @@ export const DspPartners: React.FC = () => {
     }
   };
 
-  const filteredPartners = partners.filter((p) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      p.name?.toLowerCase().includes(q) ||
-      p.code?.toLowerCase().includes(q) ||
-      p.contactName?.toLowerCase().includes(q) ||
-      p.email?.toLowerCase().includes(q) ||
-      p.city?.toLowerCase().includes(q)
-    );
-  });
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const filteredPartners = useMemo(() => {
+    return partners.filter((p) => {
+      const q = searchQuery.toLowerCase().trim();
+      if (!q) return true;
+      return (
+        p.id?.toLowerCase().includes(q) ||
+        p.name?.toLowerCase().includes(q) ||
+        p.code?.toLowerCase().includes(q) ||
+        p.contactName?.toLowerCase().includes(q) ||
+        p.contactPhone?.toLowerCase().includes(q) ||
+        p.email?.toLowerCase().includes(q) ||
+        p.city?.toLowerCase().includes(q)
+      );
+    });
+  }, [partners, searchQuery]);
+
+  const paginatedPartners = useMemo(() => {
+    const fromIndex = (currentPage - 1) * pageSize;
+    return filteredPartners.slice(fromIndex, fromIndex + pageSize);
+  }, [filteredPartners, currentPage, pageSize]);
 
   const totalDrivers = partners.reduce((acc, p) => acc + (p.driversCount || 0), 0);
   const totalOrders = partners.reduce((acc, p) => acc + (p.ordersCount || 0), 0);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -303,7 +319,7 @@ export const DspPartners: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredPartners.map((partner) => (
+                paginatedPartners.map((partner) => (
                   <tr key={partner.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="py-4 px-6">
                       <div className="font-extrabold text-slate-900">{partner.name}</div>
@@ -405,6 +421,18 @@ export const DspPartners: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Paginación de Asociaciones */}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredPartners.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Modal Registrar Asociación */}

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { notify } from '../utils/notify';
+import { Pagination } from '../components/Pagination';
 
 interface DriverWithdrawalRow {
   id: string;
@@ -49,6 +50,8 @@ export const DriverPayouts: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'PAID'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Modal para Pagar al Repartidor
   const [payingWithdrawal, setPayingWithdrawal] = useState<DriverWithdrawalRow | null>(null);
@@ -77,21 +80,33 @@ export const DriverPayouts: React.FC = () => {
     fetchWithdrawals();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter]);
+
   const filteredWithdrawals = useMemo(() => {
     return withdrawals.filter((w) => {
+      const q = searchQuery.toLowerCase().trim();
       const driverName = w.driver?.fullName || w.accountHolder || '';
       const driverCi = w.driver?.ciNumber || '';
       const matchSearch =
-        !searchQuery ||
-        driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        driverCi.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        w.accountNumberOrPhone.toLowerCase().includes(searchQuery.toLowerCase());
+        !q ||
+        w.id?.toLowerCase().includes(q) ||
+        driverName.toLowerCase().includes(q) ||
+        driverCi.toLowerCase().includes(q) ||
+        w.accountNumberOrPhone?.toLowerCase().includes(q) ||
+        w.paymentReference?.toLowerCase().includes(q);
 
       if (!matchSearch) return false;
       if (statusFilter === 'ALL') return true;
       return w.status === statusFilter;
     });
   }, [withdrawals, searchQuery, statusFilter]);
+
+  const paginatedWithdrawals = useMemo(() => {
+    const fromIndex = (currentPage - 1) * pageSize;
+    return filteredWithdrawals.slice(fromIndex, fromIndex + pageSize);
+  }, [filteredWithdrawals, currentPage, pageSize]);
 
   // KPIs
   const pendingTotal = withdrawals
@@ -323,7 +338,7 @@ export const DriverPayouts: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredWithdrawals.map((w) => {
+                paginatedWithdrawals.map((w) => {
                   const isPending = w.status === 'PENDING';
                   return (
                     <tr key={w.id} className="hover:bg-slate-50/80 transition-colors font-medium">
@@ -450,6 +465,18 @@ export const DriverPayouts: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Paginación de Pagos */}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredWithdrawals.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Modal 1: Realizar Pago y Registrar Comprobante */}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../services/api';
 import { notify } from '../utils/notify';
+import { Pagination } from '../components/Pagination';
 import {
   Receipt,
   Store,
@@ -39,9 +40,11 @@ interface MerchantSettlementRow {
 
 export const MerchantSettlements: React.FC = () => {
   const [settlements, setSettlements] = useState<MerchantSettlementRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'PAID'>('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Modal Detalle de Órdenes del Comercio
   const [selectedTenantForOrders, setSelectedTenantForOrders] = useState<MerchantSettlementRow | null>(null);
@@ -74,12 +77,18 @@ export const MerchantSettlements: React.FC = () => {
     fetchSettlements();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter]);
+
   const filteredSettlements = useMemo(() => {
     return settlements.filter((s) => {
+      const q = searchQuery.toLowerCase().trim();
       const matchQuery =
-        !searchQuery ||
-        s.tenantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.tenantEmail.toLowerCase().includes(searchQuery.toLowerCase());
+        !q ||
+        s.tenantId?.toLowerCase().includes(q) ||
+        s.tenantName?.toLowerCase().includes(q) ||
+        s.tenantEmail?.toLowerCase().includes(q);
 
       if (!matchQuery) return false;
       if (statusFilter === 'PENDING') return s.pendingBalance > 0;
@@ -87,6 +96,11 @@ export const MerchantSettlements: React.FC = () => {
       return true;
     });
   }, [settlements, searchQuery, statusFilter]);
+
+  const paginatedSettlements = useMemo(() => {
+    const fromIndex = (currentPage - 1) * pageSize;
+    return filteredSettlements.slice(fromIndex, fromIndex + pageSize);
+  }, [filteredSettlements, currentPage, pageSize]);
 
   // KPIs
   const totalPendingToCollect = settlements.reduce((acc, curr) => acc + curr.pendingBalance, 0);
@@ -376,13 +390,20 @@ export const MerchantSettlements: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredSettlements.map((item) => {
+                paginatedSettlements.map((item) => {
                   const hasDebt = item.pendingBalance > 0;
                   return (
-                    <tr key={item.tenantId} className="hover:bg-slate-50/80 transition-colors font-medium">
+                    <tr key={item.tenantId} className="hover:bg-slate-50/70 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-extrabold text-slate-900 text-sm">{item.tenantName}</div>
-                        <div className="text-[11px] text-slate-500">{item.tenantEmail}</div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 font-black text-sm">
+                            {item.tenantName.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-slate-900">{item.tenantName}</div>
+                            <div className="text-[11px] text-slate-400">{item.tenantEmail}</div>
+                          </div>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-extrabold text-slate-900">{item.deliveredOrdersCount}</span>
@@ -451,6 +472,18 @@ export const MerchantSettlements: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Paginación de Comercios y Liquidaciones */}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredSettlements.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Modal 1: Auditoría de Órdenes del Comercio con Exportación a Excel */}

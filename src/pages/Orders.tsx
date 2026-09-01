@@ -35,6 +35,7 @@ import {
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { notify } from '../utils/notify';
+import { Pagination } from '../components/Pagination';
 
 // Íconos visuales de Mapa para Recogida y Entrega
 const pickupMarkerIcon = new L.DivIcon({
@@ -250,6 +251,14 @@ export const Orders: React.FC = () => {
     });
   }, [orders]);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+
+  // Reset page when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter]);
+
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
       const q = searchQuery.toLowerCase().trim();
@@ -259,6 +268,11 @@ export const Orders: React.FC = () => {
         o.merchantReference?.toLowerCase().includes(q) ||
         o.pickupAddress?.toLowerCase().includes(q) ||
         o.dropoffAddress?.toLowerCase().includes(q) ||
+        o.driverId?.toLowerCase().includes(q) ||
+        o.driver?.fullName?.toLowerCase().includes(q) ||
+        o.driver?.phone?.toLowerCase().includes(q) ||
+        o.packageNotes?.toLowerCase().includes(q) ||
+        o.trackingToken?.toLowerCase().includes(q) ||
         o.price?.toString().includes(q) ||
         o.status?.toLowerCase().includes(q);
 
@@ -273,6 +287,11 @@ export const Orders: React.FC = () => {
       return true;
     });
   }, [orders, searchQuery, statusFilter, stuckOrders]);
+
+  const paginatedOrders = useMemo(() => {
+    const fromIndex = (currentPage - 1) * pageSize;
+    return filteredOrders.slice(fromIndex, fromIndex + pageSize);
+  }, [filteredOrders, currentPage, pageSize]);
 
   const openOrderAudit = async (orderId: string, directOrderObj?: any) => {
     const localOrder = directOrderObj || orders.find((o) => o.id === orderId);
@@ -591,7 +610,7 @@ export const Orders: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredOrders.map((o) => {
+                paginatedOrders.map((o) => {
                   const isStuck = stuckOrders.some((s) => s.id === o.id);
                   const isDelivered = o.status === 'DELIVERED';
                   const hasPOD = !!o.proofPhotoUrl;
@@ -729,6 +748,18 @@ export const Orders: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Paginación de Órdenes */}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredOrders.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Modal Integral de Soporte, Forzar Estados, POD y Auditoría */}

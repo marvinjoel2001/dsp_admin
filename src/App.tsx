@@ -22,6 +22,7 @@ import { Login } from './pages/Login';
 
 const MainLayout: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const [isMobileOpen, setIsMobileOpen] = React.useState(false);
 
   if (!isAuthenticated) {
     return <Login />;
@@ -29,11 +30,12 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50/70 text-slate-800">
-      <Sidebar />
+      <Sidebar isMobileOpen={isMobileOpen} onCloseMobile={() => setIsMobileOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
         <Header
           title="Centro de Operaciones Chiringuito DSP"
           subtitle="Plataforma de Despacho B2B y Gestión de Webhooks"
+          onToggleMobileMenu={() => setIsMobileOpen((prev) => !prev)}
         />
         <main className="flex-1 overflow-y-auto">
           <Routes>
