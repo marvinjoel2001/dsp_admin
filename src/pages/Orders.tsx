@@ -274,13 +274,21 @@ export const Orders: React.FC = () => {
     });
   }, [orders, searchQuery, statusFilter, stuckOrders]);
 
-  const openOrderAudit = async (orderId: string) => {
+  const openOrderAudit = async (orderId: string, directOrderObj?: any) => {
+    const localOrder = directOrderObj || orders.find((o) => o.id === orderId);
+    if (localOrder) {
+      setSelectedOrder(localOrder);
+    }
     try {
       const details = await api.get(`/orders/${orderId}`);
-      setSelectedOrder(details);
-    } catch {
-      const found = orders.find((o) => o.id === orderId);
-      setSelectedOrder(found || null);
+      if (details && details.id) {
+        setSelectedOrder(details);
+      }
+    } catch (err) {
+      console.error('Error cargando auditoría de orden:', err);
+      if (!localOrder) {
+        notify.error('No se pudo encontrar la información de la orden');
+      }
     }
   };
 
@@ -705,7 +713,7 @@ export const Orders: React.FC = () => {
 
                           <button
                             type="button"
-                            onClick={() => openOrderAudit(o.id)}
+                            onClick={() => openOrderAudit(o.id, o)}
                             className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all font-bold text-xs flex items-center gap-1 cursor-pointer"
                             title="Auditoría Completa y Soporte Operativo"
                           >
@@ -725,7 +733,7 @@ export const Orders: React.FC = () => {
 
       {/* Modal Integral de Soporte, Forzar Estados, POD y Auditoría */}
       {selectedOrder && (
-        <div className="fixed inset-0 modal-overlay-root bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 modal-overlay-root bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200/80 overflow-hidden">
             {/* Header del Modal */}
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -1008,7 +1016,7 @@ export const Orders: React.FC = () => {
 
       {/* Modal Operativo 1: Forzar Estado Manualmente */}
       {isForceStatusModalOpen && selectedOrder && (
-        <div className="fixed inset-0 modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[60] modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -1112,7 +1120,7 @@ export const Orders: React.FC = () => {
 
       {/* Modal Operativo 2: Reasignación de Conductor */}
       {isReassignModalOpen && selectedOrder && (
-        <div className="fixed inset-0 modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[60] modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -1179,7 +1187,7 @@ export const Orders: React.FC = () => {
 
       {/* Modal Delegar Orden a Asociación de Motos / DSP */}
       {isDelegateModalOpen && selectedOrder && (
-        <div className="fixed inset-0 modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[60] modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -1267,7 +1275,7 @@ export const Orders: React.FC = () => {
 
       {/* Modal DSP: Asignar Motorizado de su Asociación */}
       {isDspAssignModalOpen && selectedOrder && (
-        <div className="fixed inset-0 modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[60] modal-overlay-child bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -1335,7 +1343,7 @@ export const Orders: React.FC = () => {
 
       {/* Modal Crear Despacho Manual con Mapa Interactivo */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 modal-overlay-root bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 modal-overlay-root bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200/80 overflow-hidden">
             {/* Header */}
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
