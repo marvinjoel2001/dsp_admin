@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { notify } from '../utils/notify';
 
 export const Drivers: React.FC = () => {
   const { user } = useAuth();
@@ -116,7 +117,7 @@ export const Drivers: React.FC = () => {
   const handleRegisterDriver = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regForm.fullName || !regForm.phone || !regForm.email || !regForm.password) {
-      alert('Por favor completa todos los campos requeridos (*)');
+      notify.warning('Por favor completa todos los campos requeridos (*)');
       return;
     }
 
@@ -134,7 +135,7 @@ export const Drivers: React.FC = () => {
         dspPartnerId: user?.role === 'DSP_EXTERNAL' ? user.dspPartnerId : (regForm.dspPartnerId || undefined),
       });
 
-      alert('✅ Conductor registrado y verificado exitosamente.');
+      notify.success('Conductor registrado y verificado exitosamente.');
       setIsRegisterModalOpen(false);
       setRegForm({
         fullName: '',
@@ -149,7 +150,7 @@ export const Drivers: React.FC = () => {
       });
       fetchDrivers();
     } catch (err: any) {
-      alert(`Error al registrar conductor: ${err.message}`);
+      notify.error(`Error al registrar conductor: ${err.message}`);
     } finally {
       setRegisterSubmitting(false);
     }
@@ -158,6 +159,7 @@ export const Drivers: React.FC = () => {
   const handleToggleOnline = async (driverId: string, currentStatus: boolean) => {
     try {
       await api.patch(`/drivers/${driverId}/online`, { isOnline: !currentStatus });
+      notify.info(`Estado del conductor actualizado a ${!currentStatus ? 'En Línea' : 'Desconectado'}`);
       fetchDrivers();
     } catch {
       setDrivers(drivers.map((d) => (d.id === driverId ? { ...d, isOnline: !currentStatus } : d)));
@@ -175,14 +177,14 @@ export const Drivers: React.FC = () => {
       if (selectedDriverForDocs && selectedDriverForDocs.id === driverId) {
         setSelectedDriverForDocs({ ...selectedDriverForDocs, verificationStatus: status });
       }
-      alert(
-        status === 'verified'
-          ? '✅ Conductor verificado y aprobado exitosamente. Ahora puede conectarse y recibir pedidos.'
-          : '⚠️ Conductor marcado como rechazado.'
-      );
+      if (status === 'verified') {
+        notify.success('Conductor verificado y aprobado exitosamente.', 'Ahora puede conectarse y recibir pedidos.');
+      } else {
+        notify.warning('Conductor marcado como rechazado.');
+      }
       fetchDrivers();
     } catch (err: any) {
-      alert(`Error al actualizar estado: ${err.message}`);
+      notify.error(`Error al actualizar estado: ${err.message}`);
     } finally {
       setIsUpdating(false);
     }
@@ -193,10 +195,10 @@ export const Drivers: React.FC = () => {
     if (!window.confirm(`¿Estás seguro de que deseas ${action} al conductor ${driver.fullName}?`)) return;
     try {
       await api.patch(`/drivers/${driver.id}/toggle-active`);
-      alert(`✅ Conductor ${driver.fullName} ${driver.isActive ? 'bloqueado' : 'desbloqueado'} con éxito.`);
+      notify.success(`Conductor ${driver.fullName} ${driver.isActive ? 'bloqueado' : 'desbloqueado'} con éxito.`);
       fetchDrivers();
     } catch (err: any) {
-      alert(`Error al cambiar estado de cuenta: ${err.message}`);
+      notify.error(`Error al cambiar estado de cuenta: ${err.message}`);
     }
   };
 
@@ -204,11 +206,11 @@ export const Drivers: React.FC = () => {
     if (!window.confirm(`⚠️ ¡ATENCIÓN! ¿Estás seguro de eliminar definitivamente a ${driver.fullName}? Esta acción no se puede deshacer.`)) return;
     try {
       await api.delete(`/drivers/${driver.id}`);
-      alert(`✅ Conductor ${driver.fullName} eliminado exitosamente.`);
+      notify.success(`Conductor ${driver.fullName} eliminado exitosamente.`);
       fetchDrivers();
       if (selectedDriverForDocs?.id === driver.id) setSelectedDriverForDocs(null);
     } catch (err: any) {
-      alert(`Error al eliminar conductor: ${err.message}`);
+      notify.error(`Error al eliminar conductor: ${err.message}`);
     }
   };
 
@@ -246,11 +248,11 @@ export const Drivers: React.FC = () => {
         payload.password = editForm.password;
       }
       await api.put(`/drivers/${editDriver.id}`, payload);
-      alert(`✅ Conductor ${editForm.fullName} actualizado exitosamente.`);
+      notify.success(`Conductor ${editForm.fullName} actualizado exitosamente.`);
       setEditDriver(null);
       fetchDrivers();
     } catch (err: any) {
-      alert(`Error al actualizar conductor: ${err.message}`);
+      notify.error(`Error al actualizar conductor: ${err.message}`);
     } finally {
       setIsEditingSubmitting(false);
     }
@@ -267,12 +269,12 @@ export const Drivers: React.FC = () => {
         type: adjustType,
         description: adjustDescription || 'Ajuste operativo de soporte/admin',
       });
-      alert(`✅ Saldo de ${adjustDriver.fullName} ajustado con éxito.`);
+      notify.success(`Saldo de ${adjustDriver.fullName} ajustado con éxito.`);
       setAdjustDriver(null);
       setAdjustDescription('');
       fetchDrivers();
     } catch (err: any) {
-      alert(`Error al ajustar saldo: ${err.message}`);
+      notify.error(`Error al ajustar saldo: ${err.message}`);
     } finally {
       setIsSubmittingAdjust(false);
     }

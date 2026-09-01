@@ -18,6 +18,7 @@ import {
   Phone,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { notify } from '../utils/notify';
 
 interface DriverWithdrawalRow {
   id: string;
@@ -115,13 +116,13 @@ export const DriverPayouts: React.FC = () => {
         adminNotes,
       });
 
-      alert(`✅ Pago de Bs. ${Number(payingWithdrawal.amount).toFixed(2)} a ${payingWithdrawal.accountHolder} registrado con éxito.`);
+      notify.success(`Pago de Bs. ${Number(payingWithdrawal.amount).toFixed(2)} a ${payingWithdrawal.accountHolder} registrado con éxito.`);
       setPayingWithdrawal(null);
       setPaymentReference('');
       setAdminNotes('');
       fetchWithdrawals();
     } catch (err: any) {
-      alert(`Error al registrar pago: ${err.message}`);
+      notify.error(`Error al registrar pago: ${err.message}`);
     } finally {
       setIsSubmittingPay(false);
     }
@@ -134,10 +135,10 @@ export const DriverPayouts: React.FC = () => {
 
     try {
       await api.patch(`/settlements/withdrawals/${withdrawal.id}/reject`, { reason });
-      alert('Solicitud rechazada y fondos devueltos a la billetera del conductor.');
+      notify.warning('Solicitud rechazada y fondos devueltos a la billetera del conductor.');
       fetchWithdrawals();
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      notify.error(`Error: ${err.message}`);
     }
   };
 

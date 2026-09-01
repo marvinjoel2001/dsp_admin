@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { notify } from '../utils/notify';
 
 // Íconos visuales de Mapa para Recogida y Entrega
 const pickupMarkerIcon = new L.DivIcon({
@@ -178,7 +179,7 @@ export const Orders: React.FC = () => {
 
   const handleDelegateOrder = async () => {
     if (!selectedOrder || !selectedDspForDelegation) {
-      alert('Por favor selecciona una asociación de motos.');
+      notify.warning('Por favor selecciona una asociación de motos.');
       return;
     }
     setIsSubmittingDelegation(true);
@@ -187,12 +188,12 @@ export const Orders: React.FC = () => {
         dspPartnerId: selectedDspForDelegation,
         dspPayout: Number(delegationPayout),
       });
-      alert('✅ Pedido delegado con éxito a la asociación.');
+      notify.success('Pedido delegado con éxito a la asociación.');
       setIsDelegateModalOpen(false);
       fetchOrders();
       openOrderAudit(selectedOrder.id);
     } catch (err: any) {
-      alert(`Error al delegar: ${err.message}`);
+      notify.error(`Error al delegar: ${err.message}`);
     } finally {
       setIsSubmittingDelegation(false);
     }
@@ -204,17 +205,17 @@ export const Orders: React.FC = () => {
       await api.post(`/orders/${selectedOrder.id}/dsp-accept`, {
         dspPartnerId: user.dspPartnerId,
       });
-      alert('✅ Has aceptado el pedido para tu asociación.');
+      notify.success('Has aceptado el pedido para tu asociación.');
       fetchOrders();
       openOrderAudit(selectedOrder.id);
     } catch (err: any) {
-      alert(`Error al aceptar pedido: ${err.message}`);
+      notify.error(`Error al aceptar pedido: ${err.message}`);
     }
   };
 
   const handleDspAssignDriver = async () => {
     if (!selectedOrder || !user?.dspPartnerId || !dspDriverToAssign) {
-      alert('Por favor selecciona un motorizado de tu lista.');
+      notify.warning('Por favor selecciona un motorizado de tu lista.');
       return;
     }
     setIsSubmittingDspAssign(true);
@@ -223,12 +224,12 @@ export const Orders: React.FC = () => {
         dspPartnerId: user.dspPartnerId,
         driverId: dspDriverToAssign,
       });
-      alert('✅ Pedido asignado exitosamente al conductor.');
+      notify.success('Pedido asignado exitosamente al conductor.');
       setIsDspAssignModalOpen(false);
       fetchOrders();
       openOrderAudit(selectedOrder.id);
     } catch (err: any) {
-      alert(`Error al asignar motorizado: ${err.message}`);
+      notify.error(`Error al asignar motorizado: ${err.message}`);
     } finally {
       setIsSubmittingDspAssign(false);
     }
@@ -297,14 +298,14 @@ export const Orders: React.FC = () => {
         proofPhotoUrl: overrideProofPhoto || selectedOrder.proofPhotoUrl || null,
       });
 
-      alert(`✅ Estado de la orden #${selectedOrder.id} forzado exitosamente a ${targetStatus}.`);
+      notify.success(`Estado forzado exitosamente a ${targetStatus}.`, `Orden #${selectedOrder.id}`);
       setIsForceStatusModalOpen(false);
       setForceReason('');
       setOverrideProofPhoto('');
       openOrderAudit(selectedOrder.id);
       fetchOrders();
     } catch (err: any) {
-      alert(`Error al forzar estado: ${err.message}`);
+      notify.error(`Error al forzar estado: ${err.message}`);
     } finally {
       setIsSubmittingForce(false);
     }
@@ -322,13 +323,13 @@ export const Orders: React.FC = () => {
         driverId: selectedDriverForReassign,
       });
 
-      alert(`✅ Orden #${selectedOrder.id} reasignada con éxito.`);
+      notify.success(`Orden #${selectedOrder.id} reasignada con éxito.`);
       setIsReassignModalOpen(false);
       setSelectedDriverForReassign('');
       openOrderAudit(selectedOrder.id);
       fetchOrders();
     } catch (err: any) {
-      alert(`Error en reasignación: ${err.message}`);
+      notify.error(`Error en reasignación: ${err.message}`);
     } finally {
       setIsSubmittingReassign(false);
     }
@@ -340,9 +341,9 @@ export const Orders: React.FC = () => {
     setIsResendingWebhook(true);
     try {
       await api.post(`/orders/${selectedOrder.id}/resend-webhook`, {});
-      alert(`✅ Webhook [${selectedOrder.status}] re-emitido con firma criptográfica a la tienda.`);
+      notify.success(`Webhook [${selectedOrder.status}] re-emitido con firma criptográfica a la tienda.`);
     } catch (err: any) {
-      alert(`Error reenviando webhook: ${err.message}`);
+      notify.error(`Error reenviando webhook: ${err.message}`);
     } finally {
       setIsResendingWebhook(false);
     }
@@ -354,11 +355,11 @@ export const Orders: React.FC = () => {
     setIsRetryingMatch(true);
     try {
       const res = await api.post(`/dispatch/orders/${selectedOrder.id}/match`, {});
-      alert(`🔍 Búsqueda disparada. Candidatos en línea encontrados: ${res.candidatesCount || 0}`);
+      notify.info(`Búsqueda disparada`, `Candidatos en línea encontrados: ${res.candidatesCount || 0}`);
       openOrderAudit(selectedOrder.id);
       fetchOrders();
     } catch (err: any) {
-      alert(`Error disparando búsqueda: ${err.message}`);
+      notify.error(`Error disparando búsqueda: ${err.message}`);
     } finally {
       setIsRetryingMatch(false);
     }
@@ -388,7 +389,7 @@ export const Orders: React.FC = () => {
   const handleCreateManualOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPickupAddress || !newDropoffAddress) {
-      alert('Por favor ingresa las direcciones de recogida y entrega.');
+      notify.warning('Por favor ingresa las direcciones de recogida y entrega.');
       return;
     }
 
@@ -407,12 +408,12 @@ export const Orders: React.FC = () => {
       };
 
       const result: any = await api.post('/orders/manual', payload);
-      alert(`✅ ¡Orden #${result.id} creada exitosamente!\nMatchmaking y despacho geoespacial activado.`);
+      notify.success(`¡Orden #${result.id} creada exitosamente!`, 'Matchmaking y despacho geoespacial activado.');
       setIsCreateModalOpen(false);
       fetchOrders();
       openOrderAudit(result.id);
     } catch (err: any) {
-      alert(`Error creando orden manual: ${err.message}`);
+      notify.error(`Error creando orden manual: ${err.message}`);
     } finally {
       setIsCreatingOrder(false);
     }
@@ -420,6 +421,7 @@ export const Orders: React.FC = () => {
 
   const copyProofUrl = (url: string) => {
     navigator.clipboard.writeText(url);
+    notify.success('Enlace de prueba copiado al portapapeles');
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Webhook, RefreshCw, CheckCircle2, AlertTriangle, Play, Shield, Terminal, ArrowUpRight, Search, Check, Copy } from 'lucide-react';
 import { api } from '../services/api';
 import { CryptoHelper } from '../services/crypto';
+import { notify } from '../utils/notify';
 
 export const WebhooksConsole: React.FC = () => {
   const [deliveries, setDeliveries] = useState<any[]>([]);
@@ -40,10 +41,10 @@ export const WebhooksConsole: React.FC = () => {
     setIsRetrying(deliveryId);
     try {
       await api.post(`/webhooks/deliveries/${deliveryId}/retry`, {});
-      alert(`¡Evento ${deliveryId} re-encolado exitosamente a BullMQ!`);
+      notify.success(`¡Evento ${deliveryId} re-encolado exitosamente a BullMQ!`);
       fetchDeliveries();
     } catch (err: any) {
-      alert(`Error al reintentar: ${err.message}`);
+      notify.error(`Error al reintentar: ${err.message}`);
     } finally {
       setIsRetrying(null);
     }

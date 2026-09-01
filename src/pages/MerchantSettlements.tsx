@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { api } from '../services/api';
+import { notify } from '../utils/notify';
 import {
   Receipt,
   Store,
@@ -18,7 +20,6 @@ import {
   ArrowUpRight,
   TrendingUp,
 } from 'lucide-react';
-import { api } from '../services/api';
 
 interface MerchantSettlementRow {
   tenantId: string;
@@ -122,14 +123,14 @@ export const MerchantSettlements: React.FC = () => {
         notes: paymentNotes,
       });
 
-      alert(`✅ Cobro de Bs. ${paymentAmount.toFixed(2)} registrado correctamente.`);
+      notify.success(`Cobro de Bs. ${paymentAmount.toFixed(2)} registrado correctamente.`);
       setPaymentModalTenant(null);
       setPaymentAmount(0);
       setPaymentReference('');
       setPaymentNotes('');
       fetchSettlements();
     } catch (err: any) {
-      alert(`Error al registrar cobro: ${err.message}`);
+      notify.error(`Error al registrar cobro: ${err.message}`);
     } finally {
       setIsSubmittingPayment(false);
     }

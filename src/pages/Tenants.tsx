@@ -1,6 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Store, Key, Copy, Check, Plus, RefreshCw, Globe, Shield, Edit2, Trash2, Ban, CheckCircle2, X } from 'lucide-react';
 import { api } from '../services/api';
+import { notify } from '../utils/notify';
+import {
+  Store,
+  Key,
+  ShieldAlert,
+  CheckCircle2,
+  Copy,
+  Check,
+  Plus,
+  Trash2,
+  XCircle,
+  ExternalLink,
+  Code2,
+  Edit,
+  X,
+  Loader2,
+  AlertTriangle,
+  RefreshCw,
+  Globe,
+  Edit2,
+  Ban
+} from 'lucide-react';
 
 export const Tenants: React.FC = () => {
   const [tenants, setTenants] = useState<any[]>([]);
@@ -45,12 +66,13 @@ export const Tenants: React.FC = () => {
       if (res?.id && res?.apiKeyRaw) {
         localStorage.setItem(`tenant_apikey_${res.id}`, res.apiKeyRaw);
       }
+      notify.success(`Tienda "${name}" registrada exitosamente.`, 'Guarda la clave API generada.');
       fetchTenants();
       setName('');
       setEmail('');
       setWebhookUrl('');
     } catch (err: any) {
-      alert(`Error al registrar tienda: ${err.message}`);
+      notify.error(`Error al registrar tienda: ${err.message}`);
     }
   };
 
@@ -59,10 +81,10 @@ export const Tenants: React.FC = () => {
     if (!confirm(`¿Estás seguro de ${action} "${tenant.name}"?`)) return;
     try {
       await api.patch(`/tenants/${tenant.id}/toggle-status`);
-      alert(`✅ Tienda ${tenant.name} ${tenant.isActive ? 'desactivada' : 'activada'} con éxito.`);
+      notify.success(`Tienda ${tenant.name} ${tenant.isActive ? 'desactivada' : 'activada'} con éxito.`);
       fetchTenants();
     } catch (err: any) {
-      alert(`Error al cambiar estado: ${err.message}`);
+      notify.error(`Error al cambiar estado: ${err.message}`);
     }
   };
 
@@ -70,10 +92,10 @@ export const Tenants: React.FC = () => {
     if (!confirm(`⚠️ ¡ATENCIÓN! ¿Estás seguro de eliminar definitivamente a la tienda "${tenant.name}"? Sus claves API dejarán de funcionar de inmediato.`)) return;
     try {
       await api.delete(`/tenants/${tenant.id}`);
-      alert(`✅ Tienda ${tenant.name} eliminada con éxito.`);
+      notify.success(`Tienda ${tenant.name} eliminada con éxito.`);
       fetchTenants();
     } catch (err: any) {
-      alert(`Error al eliminar tienda: ${err.message}`);
+      notify.error(`Error al eliminar tienda: ${err.message}`);
     }
   };
 
@@ -94,11 +116,11 @@ export const Tenants: React.FC = () => {
         email: editEmail,
         webhookUrl: editWebhookUrl,
       });
-      alert(`✅ Tienda ${editName} actualizada correctamente.`);
+      notify.success(`Tienda "${editName}" actualizada correctamente.`);
       setEditTenant(null);
       fetchTenants();
     } catch (err: any) {
-      alert(`Error al actualizar tienda: ${err.message}`);
+      notify.error(`Error al actualizar tienda: ${err.message}`);
     } finally {
       setIsEditingSubmitting(false);
     }
@@ -106,6 +128,7 @@ export const Tenants: React.FC = () => {
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
+    notify.success('Copiado al portapapeles');
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };

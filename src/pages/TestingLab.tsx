@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import CryptoJS from 'crypto-js';
 import { api } from '../services/api';
+import { notify } from '../utils/notify';
 
 interface Tenant {
   id: string;
@@ -163,9 +164,9 @@ export const TestingLab: React.FC = () => {
       }
       await fetchTenants();
       setSelectedTenantId(newTenant.id);
-      alert(`✅ Tienda creada con éxito.\nAPI Key: ${newTenant.apiKeyRaw}\nWebhook Secret: ${newTenant.webhookSecret}`);
+      notify.success('Tienda creada con éxito', `API Key: ${newTenant.apiKeyRaw}`);
     } catch (err: any) {
-      alert(`Error creando tienda: ${err.message}`);
+      notify.error(`Error creando tienda: ${err.message}`);
     }
   };
 
@@ -247,7 +248,7 @@ export const TestingLab: React.FC = () => {
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTenant) {
-      alert('Por favor selecciona o crea una tienda primero.');
+      notify.warning('Por favor selecciona o crea una tienda primero.');
       return;
     }
 
@@ -255,7 +256,7 @@ export const TestingLab: React.FC = () => {
     try {
       const apiKey = customApiKey.trim() || selectedTenant.apiKeyRaw || (selectedTenant.name?.includes('Chiringuito') || selectedTenant.id === 'e7b92f34-1182-4bc9-93e1-23d9b04f7a11' ? 'dsp_live_chiringuito123' : '');
       if (!apiKey) {
-        alert('Por favor ingresa la Clave API de la tienda seleccionada o crea una nueva tienda de prueba con el botón "+ Nueva".');
+        notify.warning('Clave API requerida', 'Por favor ingresa la Clave API de la tienda seleccionada o crea una nueva con "+ Nueva".');
         setIsSubmittingOrder(false);
         return;
       }
@@ -282,12 +283,13 @@ export const TestingLab: React.FC = () => {
       };
 
       setActiveOrder(activeOrderWithMeta);
+      notify.success('Orden creada en el backend', `ID: ${created.id}`);
 
       // Emitir log inicial de creación de orden
       triggerSimulatedWebhook('order.created', activeOrderWithMeta);
     } catch (err: any) {
       console.error('Error al crear orden:', err);
-      alert(`Error al crear la orden: ${err.message}`);
+      notify.error(`Error al crear la orden: ${err.message}`);
     } finally {
       setIsSubmittingOrder(false);
     }

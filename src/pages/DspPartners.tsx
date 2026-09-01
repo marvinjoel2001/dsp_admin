@@ -19,6 +19,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { notify } from '../utils/notify';
 
 export const DspPartners: React.FC = () => {
   const [partners, setPartners] = useState<any[]>([]);
@@ -74,9 +75,10 @@ export const DspPartners: React.FC = () => {
   const handleToggleActive = async (partnerId: string) => {
     try {
       await api.patch(`/dsp-partners/${partnerId}/toggle`);
+      notify.info('Estado de asociación actualizado.');
       fetchPartners();
     } catch (err: any) {
-      alert(`Error al cambiar estado: ${err.message}`);
+      notify.error(`Error al cambiar estado: ${err.message}`);
     }
   };
 
@@ -84,10 +86,10 @@ export const DspPartners: React.FC = () => {
     if (!confirm(`⚠️ ¡ATENCIÓN! ¿Estás seguro de eliminar a la asociación "${partner.name}" (${partner.code})? Esta acción desvinculará sus conductores y pedidos.`)) return;
     try {
       await api.delete(`/dsp-partners/${partner.id}`);
-      alert(`✅ Asociación ${partner.name} eliminada con éxito.`);
+      notify.success(`Asociación ${partner.name} eliminada con éxito.`);
       fetchPartners();
     } catch (err: any) {
-      alert(`Error al eliminar asociación: ${err.message}`);
+      notify.error(`Error al eliminar asociación: ${err.message}`);
     }
   };
 
@@ -123,11 +125,11 @@ export const DspPartners: React.FC = () => {
         payload.password = editForm.password;
       }
       await api.patch(`/dsp-partners/${editPartner.id}`, payload);
-      alert(`✅ Asociación ${editForm.name} actualizada con éxito.`);
+      notify.success(`Asociación ${editForm.name} actualizada con éxito.`);
       setEditPartner(null);
       fetchPartners();
     } catch (err: any) {
-      alert(`Error al actualizar asociación: ${err.message}`);
+      notify.error(`Error al actualizar asociación: ${err.message}`);
     } finally {
       setIsEditingSubmitting(false);
     }
@@ -136,7 +138,7 @@ export const DspPartners: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.code || !form.email) {
-      alert('Por favor completa los campos obligatorios.');
+      notify.warning('Por favor completa los campos obligatorios.');
       return;
     }
 
@@ -153,7 +155,7 @@ export const DspPartners: React.FC = () => {
         payoutPerOrder: Number(form.payoutPerOrder),
       });
 
-      alert('✅ Asociación de motos registrada con éxito.');
+      notify.success('Asociación de motos registrada con éxito.');
       setIsModalOpen(false);
       setForm({
         name: '',
@@ -167,7 +169,7 @@ export const DspPartners: React.FC = () => {
       });
       fetchPartners();
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      notify.error(`Error: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
